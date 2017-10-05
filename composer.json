@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "type": "package",
     "keywords": ["architect", "manager", "codename", "core"],
-    "time": "2017-09-25",
+    "time": "2017-10-05",
     "authors": [
         {
             "name": "Kevin Dargel",
@@ -13,7 +13,7 @@
     ],
     "autoload": {
       "psr-4": {
-          "codename\\demo\\": "backend/class/"
+          "codename\\architect\\": "backend/class/"
       }
     }
 }
