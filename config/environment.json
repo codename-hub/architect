@@ -1,0 +1,47 @@
+{
+  "production" : {
+    "log" : {
+
+    }
+  },
+  "dev": {
+    "templateengine" : {
+      "twig_default" : {
+        "driver" : "twig"
+      }
+    },
+    "filesystem": {
+			"local": {
+				"driver": "local"
+			}
+		},
+    "session" : {
+			"default" : {
+				"driver" : "session"
+			}
+		},
+    "log" : {
+      "errormessage": {
+				"driver": "file",
+				"data": {
+					"name": "cn_errormessage",
+					"minlevel" : -3
+				}
+			},
+      "debug": {
+				"driver": "file",
+				"data": {
+					"name": "cn_debug",
+					"minlevel" : -2
+				}
+			},
+      "access": {
+				"driver": "file",
+				"data": {
+					"name": "cn_access",
+					"minlevel" : -5
+				}
+			}
+    }
+  }
+}

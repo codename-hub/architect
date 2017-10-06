@@ -1,0 +1,17 @@
+{
+	"defaultcontext": "main",
+	"defaulttemplateengine" : "twig_default",
+	"defaulttemplate": "blank",
+	"context": {
+		"main": {
+			"template" : "basic",
+			"defaultview": "default",
+			"templateengine": "twig_default",
+			"view": {
+				"default": {
+					"public": true
+				}
+			}
+		}
+  }
+}
