@@ -15,6 +15,11 @@
 				"driver": "local"
 			}
 		},
+    "cache" : {
+      "default" : {
+        "driver" : "devnull"
+      }
+    },
     "session" : {
 			"default" : {
 				"driver" : "session"
@@ -41,7 +46,14 @@
 					"name": "cn_access",
 					"minlevel" : -5
 				}
-			}
+			},
+      "query" : {
+        "driver": "file",
+				"data": {
+					"name": "query",
+					"minlevel" : 0
+				}
+      }
     }
   }
 }

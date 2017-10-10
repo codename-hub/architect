@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <td>Vendor</td>
+      <td>App</td>
+      <td>Overview</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for app in apps %}
+        <tr>
+            <td>{{ app.vendor }}</td>
+            <td>{{ app.app }}</td>
+            <td><a href="{{ url('main/listmodels', { 'filter' : { 'vendor' : app.vendor, 'app' : app.app } }) }}">Details</a></td>
+        </tr>
+    {% endfor %}
+  </tbody>
+</table>

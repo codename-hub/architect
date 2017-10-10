@@ -17,7 +17,7 @@ class app extends \codename\core\app {
     $value = parent::run();
 
     // $this->printNamespaces();
-
+    /*
     $apps = $this->getSiblingApps();
     foreach($apps as $a) {
 
@@ -28,24 +28,83 @@ class app extends \codename\core\app {
       print_r($foreignAppstack);
 
       // get all models from the respective app and traverse its ancestors, too.
-      $foreignModels = app::getAllModels($a['app'], $a['vendor'], $foreignAppstack);
+      $foreignModels = self::getModelConfigurations($a['vendor'], $a['app'], '', $foreignAppstack);
 
-      // even more debug:
-      echo("<br>{$a['vendor']}\\{$a['app']}:");
+      echo("<br>Models:<br>");
+      print_r($foreignModels);
 
-      foreach($foreignModels as $m) {
-
-        // debug:
-        echo("<br>-- model: {$m}");
-
-        // initialize each model?
+      foreach($foreignModels as $fm) {
+        // $fm->config->getData();
       }
-    }
 
+    }
+    */
     return $value;
   }
 
 
+  public static function makeForeignAppstack(string $vendor, string $app) : array {
+    return parent::makeAppstack($vendor, $app);
+  }
+
+  /**
+   * Gets the all models/definitions, also inherited
+   * returns a multidimensional assoc array like:
+   * models[schema][model] = array( 'fields' => ... )
+   * @author Kevin Dargel
+   * @return array
+   */
+  public static function getModelConfigurations(string $filterByVendor = '', string $filterByApp = '', string $model = '', array $useAppstack = null) : array {
+
+    $result = array();
+
+    if($useAppstack == null) {
+      $useAppstack = self::getAppstack();
+    }
+
+    // Traverse Appstack
+    foreach($useAppstack as $app) {
+
+      if($filterByApp !== '') {
+        if($filterByApp !== $app['app']) {
+          continue;
+        }
+      }
+
+      if($filterByVendor !== '') {
+        if($filterByVendor !== $app['vendor']) {
+          continue;
+        }
+      }
+
+      // array of vendor,app
+      $appdir = app::getHomedir($app['vendor'], $app['app']);
+      $dir = $appdir . "config/model";
+
+      // get all model json files, first:
+      $files = app::getFilesystem()->dirList( $dir );
+
+      foreach($files as $f) {
+        $file = $dir . '/' . $f;
+
+        // check for .json extension
+        $fileInfo = new \SplFileInfo($file);
+        if($fileInfo->getExtension() === 'json') {
+          // get the model filename w/o extension
+          $modelName = $fileInfo->getBasename('.json');
+
+          // split: schema_model
+          $comp = explode( '_' , $modelName);
+          $schema = $comp[0];
+          $model = $comp[1];
+
+          $modelconfig = (new \codename\architect\config\json\virtualAppstack("config/model/" . $fileInfo->getFilename(), true, true, $useAppstack))->get();
+          $result[$schema][$model][] = $modelconfig;
+        }
+      }
+    }
+    return $result;
+  }
 
 
   /**
@@ -53,7 +112,7 @@ class app extends \codename\core\app {
    * if they depend on the core framework
    * @return array [description]
    */
-  public function getSiblingApps() : array {
+  public static function getSiblingApps() : array {
 
     // for now, we're relying on our current vendor name for finding siblings
     $appdirs = app::getFilesystem()->dirList(CORE_VENDORDIR . app::getVendor());
@@ -90,6 +149,67 @@ class app extends \codename\core\app {
 
     return $apps;
   }
+
+
+
+  /**
+   * Returns the (maybe cached) client that is stored as "driver" in $identifier (app.json) for the given $type.
+   * @param string $type
+   * @param string $identifier
+   * @return object
+   * @todo refactor
+   */
+  final public static function getForeignClient(\codename\architect\config\environment $environment, \codename\core\value\text\objecttype $type, \codename\core\value\text\objectidentifier $identifier, bool $store = true) {
+
+      // $config = self::getData($type, $identifier);
+      $config = $environment->get("{$type->get()}>{$identifier->get()}");
+
+      $type = $type->get();
+      $identifier = $identifier->get();
+      $simplename = $type . $identifier;
+
+      if ($store && array_key_exists($simplename, $_REQUEST['instances'])) {
+          return $_REQUEST['instances'][$simplename];
+      }
+
+
+      $app = array_key_exists('app', $config) ? $config['app'] : self::getApp();
+      $vendor = self::getVendor();
+
+      if(is_array($config['driver'])) {
+          $config['driver'] = $config['driver'][0];
+      }
+
+      // we have to traverse the appstack!
+      $classpath = self::getHomedir($vendor, $app) . '/backend/class/' . $type . '/' . $config['driver'] . '.php';
+      $classname = "\\{$vendor}\\{$app}\\{$type}\\" . $config['driver'];
+
+
+      // if not found in app, traverse appstack
+      if(!self::getInstance('filesystem_local')->fileAvailable($classpath)) {
+        $found = false;
+        foreach(self::getAppstack() as $parentapp) {
+          $vendor = $parentapp['vendor'];
+          $app = $parentapp['app'];
+          $classpath = self::getHomedir($vendor, $app) . '/backend/class/' . $type . '/' . $config['driver'] . '.php';
+          $classname = "\\{$vendor}\\{$app}\\{$type}\\" . $config['driver'];
+
+          if(self::getInstance('filesystem_local')->fileAvailable($classpath)) {
+            $found = true;
+            break;
+          }
+        }
+
+        if($found !== true) {
+          throw new \codename\core\exception(self::EXCEPTION_GETCLIENT_NOTFOUND, \codename\core\exception::$ERRORLEVEL_FATAL, array($type, $identifier));
+        }
+      }
+
+      // instanciate
+      return $_REQUEST['instances'][$simplename] = new $classname($config);
+  }
+
+
 
   protected function printNamespaces() {
     $namespaces=array();

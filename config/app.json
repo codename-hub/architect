@@ -10,6 +10,12 @@
 			"view": {
 				"default": {
 					"public": true
+				},
+				"listapps": {
+					"public": true
+				},
+				"listmodels": {
+					"public": true
 				}
 			}
 		}

@@ -1,0 +1,21 @@
+<table>
+  <thead>
+    <tr>
+      <td>Model</td>
+      <td>Schema</td>
+      <td>Driver</td>
+      <td>Action</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for model in models %}
+        <tr>
+            <td>{{ model.model }}</td>
+            <td>{{ model.schema }}</td>
+            <td>{{ model.driver }}</td>
+
+            <td><a href="{{ url('main/listmodels/dostuff', { 'vendor' : app.vendor, 'app' : app.app, 'model' : model.identifier }) }}">DoStuff</a></td>
+        </tr>
+    {% endfor %}
+  </tbody>
+</table>
