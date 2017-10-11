@@ -52,16 +52,54 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
   {
     $tasks = array();
     $definition = $this->getDefinition();
+
+    // override with definition from primary plugin
+    if($definition['primary']) {
+      $plugin = $this->adapter->getPluginInstance('primary');
+      if($plugin != null) {
+        $definition = $plugin->getDefinition();
+      }
+    }
+
     $structure = $this->getStructure();
 
     if($structure != null) {
+
+      echo("<pre>");
       print_r($definition);
+      echo("</pre>");
+
+      echo("<pre>");
       print_r($structure);
+      echo("</pre>");
 
       // TODO: check field properties
 
       // compare db_data_type
       // compare db_column_type
+
+      echo("<br>{$definition['db_column_type']} <=> {$structure['column_type']}");
+
+      $checkDataType = true;
+
+      if($definition['db_column_type'] != null && $definition['db_column_type'] != $structure['column_type']) {
+        // different column type!
+        echo(" -- unequal?");
+        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_COLUMN_TYPE", $definition);
+
+      } else {
+        $checkDataType = false;
+      }
+
+      if($checkDataType) {
+        echo("<br>{$definition['db_data_type']} <=> {$structure['data_type']}");
+        if($definition['db_data_type'] != null && $definition['db_data_type'] != $structure['data_type']) {
+          // different data type!
+          echo(" -- unequal?");
+          $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DATA_TYPE", $definition);
+        }
+      }
+
 
     } else {
       // some error !
@@ -113,10 +151,19 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
 
       $db->query(
-       "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} ADD COLUMN {$definition['field']} {$columnType} {$add};"
-     );
+        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} ADD COLUMN {$definition['field']} {$columnType} {$add};"
+      );
 
-   }
+    }
+
+    if($task->name == "MODIFY_COLUMN_TYPE" || $task->name == "MODIFY_DATA_TYPE") {
+      // ALTER TABLE tablename MODIFY columnname INTEGER;
+      $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
+      $db->query(
+        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType};"
+      );
+    }
+
   }
 
 

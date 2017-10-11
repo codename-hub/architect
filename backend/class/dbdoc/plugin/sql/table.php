@@ -34,6 +34,14 @@ class table extends plugin\table {
     if($structure) {
       // table exists, start submodules
 
+      // if unique key constraints exist
+      if($this->adapter->config->get('unique') != null) {
+        $plugin = $this->adapter->getPluginInstance('unique');
+        if($plugin != null) {
+          $this->adapter->addToQueue($plugin, true);
+        }
+      }
+
       $plugin = $this->adapter->getPluginInstance('fieldlist');
       if($plugin != null) {
         $this->adapter->addToQueue($plugin, true);
