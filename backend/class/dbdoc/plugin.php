@@ -65,11 +65,13 @@ abstract class plugin {
 
   /**
    * [createTask description]
-   * @param  array $config [description]
-   * @return \codename\architect\dbdoc\task         [description]
+   * @param  [type] $taskType [description]
+   * @param  string $taskName [description]
+   * @param  array  $config   [description]
+   * @return [type]           [description]
    */
-  protected function createTask(array $config = array()) {
-    return new \codename\architect\dbdoc\task($this->adapter, $this->getPluginIdentifier(), new \codename\core\config($config));
+  protected function createTask(int $taskType = task::TASK_TYPE_INFO, string $taskName, array $config = array()) {
+    return new \codename\architect\dbdoc\task($taskType, $taskName, $this->adapter, $this->getPluginIdentifier(), new \codename\core\config($config));
   }
 
 }

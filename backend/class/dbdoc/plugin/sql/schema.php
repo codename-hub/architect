@@ -1,6 +1,7 @@
 <?php
 namespace codename\architect\dbdoc\plugin\sql;
 use \codename\architect\dbdoc\plugin;
+use codename\architect\dbdoc\task;
 
 /**
  * plugin for providing and comparing model schema data
@@ -26,18 +27,28 @@ class schema extends plugin\schema {
    */
   public function Compare() : array
   {
+    $tasks = array();
     $definition = $this->getDefinition();
     $structure = $this->getStructure();
 
     if($structure) {
+
       // schema/database exists
-      return array();
+      // start subroutine plugins
+      $plugin = $this->adapter->getPluginInstance('table');
+      if($plugin != null) {
+        // add this plugin to the first
+        $this->adapter->addToQueue($plugin, true);
+      }
+
     } else {
       // schema/database does not exist
-      return array(
-        $this->createTask(   )
-      );
+      $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_SCHEMA", array(
+        'schema' => $definition
+      ));
     }
+
+    return $tasks;
   }
 
 }

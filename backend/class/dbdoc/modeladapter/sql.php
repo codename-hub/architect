@@ -43,10 +43,11 @@ abstract class sql extends \codename\architect\dbdoc\modeladapter {
   public function getPlugins() : array
   {
     return array(
+      'initial'
       // 'connection',
-      'schema',
+      /* 'schema',
       'table',
-      'fieldlist'
+      'fieldlist' */
     );
   }
 

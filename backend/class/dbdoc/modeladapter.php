@@ -127,7 +127,8 @@ abstract class modeladapter  {
     }
 
     foreach($tasks as $t) {
-      echo("<br> Task " . $t->plugin . " " . var_export($t->data, true));
+      $taskType = task::TASK_TYPES[$t->type];
+      echo("<br> Task [{$taskType}] <em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
     }
 
   }

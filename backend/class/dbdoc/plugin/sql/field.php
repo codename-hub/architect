@@ -1,5 +1,6 @@
 <?php
 namespace codename\architect\dbdoc\plugin\sql;
+use codename\architect\dbdoc\task;
 
 /**
  * plugin for providing and comparing model field data details
@@ -13,6 +14,7 @@ class field extends \codename\architect\dbdoc\plugin\field {
    */
   public function getStructure()
   {
+    // get some column specifications
     $db = $this->getSqlAdapter()->db;
     $db->query(
       "SELECT column_name, column_type, data_type
@@ -33,6 +35,7 @@ class field extends \codename\architect\dbdoc\plugin\field {
    */
   public function Compare() : array
   {
+    $tasks = array();
     $definition = $this->getDefinition();
     $structure = $this->getStructure();
 
@@ -45,17 +48,15 @@ class field extends \codename\architect\dbdoc\plugin\field {
       // print_r($structure);
 
       // create create-field task
-      return array(
-        $this->createTask(array(
-          'command' => 'CREATE_COLUMN',
-          'field' => $definition['field'],
-          'datatype' => $definition['datatype'],
-          'datatype_override' => $definition['datatype_override'],
-          'db_datatype' => $definition['datatype_override'] ?? $this->convertModelDataTypeToDbType($definition['datatype']) // first item == default?
-        ))
-      );
+      $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_COLUMN", array(
+        'field' => $definition['field'],
+        'datatype' => $definition['datatype'],
+        'datatype_override' => $definition['datatype_override'],
+        'db_datatype' => $definition['datatype_override'] ?? $this->convertModelDataTypeToDbType($definition['datatype']) // first item == default?
+      ));
     }
-    return array();
+    
+    return $tasks;
   }
 
   /**

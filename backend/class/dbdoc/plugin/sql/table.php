@@ -26,17 +26,29 @@ class table extends plugin\table {
    */
   public function Compare() : array
   {
+    $tasks = array();
     $definition = $this->getDefinition();
     $structure = $this->getStructure();
 
     if($structure) {
-      // table exists, do nothing;
-      return array();
+      // table exists, start submodules
+
+      $plugin = $this->adapter->getPluginInstance('fieldlist');
+      if($plugin != null) {
+        $this->adapter->addToQueue($plugin, true);
+      }
+
+      // pkey first
+      $plugin = $this->adapter->getPluginInstance('primary');
+      if($plugin != null) {
+        $this->adapter->addToQueue($plugin, true);
+      }
+
     } else {
       // table does not exist
-      return array(
-        $this->createTask(   )
-      );
+
     }
+
+    return $tasks;
   }
 }
