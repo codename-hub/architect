@@ -64,7 +64,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
     $structure = $this->getStructure();
 
     if($structure != null) {
-
+      /*
       echo("<pre>");
       print_r($definition);
       echo("</pre>");
@@ -72,19 +72,19 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       echo("<pre>");
       print_r($structure);
       echo("</pre>");
-
+      */
       // TODO: check field properties
 
       // compare db_data_type
       // compare db_column_type
 
-      echo("<br>{$definition['db_column_type']} <=> {$structure['column_type']}");
+      // echo("<br>{$definition['db_column_type']} <=> {$structure['column_type']}");
 
       $checkDataType = true;
 
       if($definition['db_column_type'] != null && $definition['db_column_type'] != $structure['column_type']) {
         // different column type!
-        echo(" -- unequal?");
+        // echo(" -- unequal?");
         $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_COLUMN_TYPE", $definition);
 
       } else {
@@ -92,10 +92,10 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       }
 
       if($checkDataType) {
-        echo("<br>{$definition['db_data_type']} <=> {$structure['data_type']}");
+        // echo("<br>{$definition['db_data_type']} <=> {$structure['data_type']}");
         if($definition['db_data_type'] != null && $definition['db_data_type'] != $structure['data_type']) {
           // different data type!
-          echo(" -- unequal?");
+          // echo(" -- unequal?");
           $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DATA_TYPE", $definition);
         }
       }

@@ -16,7 +16,7 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
   {
     $db = $this->getSqlAdapter()->db;
     $db->query(
-      "SELECT *
+      "SELECT table_schema, table_name, constraint_name
       FROM information_schema.table_constraints
       WHERE constraint_type='UNIQUE'
       AND table_schema = '{$this->adapter->schema}'
@@ -24,16 +24,16 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
     );
     $constraints = $db->getResult();
 
-    print_r($constraints);
+    // print_r($constraints);
 
     foreach($constraints as &$constraint) {
       $db->query(
-        "SELECT *
+        "SELECT table_schema, table_name, constraint_name, column_name
         FROM information_schema.key_column_usage
-        WHERE constraint_name = '{$constraint['CONSTRAINT_NAME']}'
+        WHERE constraint_name = '{$constraint['constraint_name']}'
         AND table_schema = '{$this->adapter->schema}'
         AND table_name = '{$this->adapter->model}'
-        ORDER BY constraint_name, POSITION_IN_UNIQUE_CONSTRAINT;"
+        ORDER BY constraint_name;"
       );
       $constraintColumns = $db->getResult();
       $constraint['constraint_columns'] = $constraintColumns;
@@ -61,8 +61,8 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
       // get ordered column_names
       $constraintColumnNames = array_map(
         function($spec) {
-          echo("<br>Spec: " . print_r($spec, true));
-          return $spec['COLUMN_NAME'];
+          // echo("<br>Spec: " . print_r($spec, true));
+          return $spec['column_name'];
         }, $struc['constraint_columns']
       );
 
@@ -94,7 +94,7 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
       }
       $missing[] = $d;
     });
-    
+
     foreach($missing as $def) {
       if(is_array($def)) {
         // multi-column constraint
