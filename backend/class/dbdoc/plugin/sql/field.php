@@ -21,6 +21,21 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $plugin = $this->adapter->getPluginInstance('primary');
       $definition = array_replace($definition, $plugin->getDefinition());
     }
+    if($definition['foreign']) {
+      // we have to get field information from a different model (!)
+      $foreignAdapter = $this->adapter->dbdoc->getAdapter($definition['foreign']['schema'], $definition['foreign']['model']);
+      $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $definition['foreign']['key']));
+      if($plugin != null) {
+        $foreignDefinition = $plugin->getDefinition();
+
+        // equalize datatypes
+        // both the referenced column and this one have to be of the same type
+        $definition['db_data_type'] = $foreignDefinition['db_data_type'];
+        $definition['db_column_type'] = $foreignDefinition['db_column_type'];
+
+        // TODO: we may warn, if there's a configurational difference!
+      }
+    }
     return $definition;
   }
 

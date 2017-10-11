@@ -24,8 +24,6 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
     );
     $constraints = $db->getResult();
 
-    // print_r($constraints);
-
     foreach($constraints as &$constraint) {
       $db->query(
         "SELECT table_schema, table_name, constraint_name, column_name
@@ -58,10 +56,9 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
 
     foreach($structure as $struc) {
 
-      // get ordered column_names
+      // get ordered (?) column_names
       $constraintColumnNames = array_map(
         function($spec) {
-          // echo("<br>Spec: " . print_r($spec, true));
           return $spec['column_name'];
         }, $struc['constraint_columns']
       );
@@ -120,9 +117,9 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
     $db = $this->getSqlAdapter()->db;
     if($task->name == "ADD_UNIQUE_CONSTRAINT") {
       /*
-      ALTER TABLE Persons
-      ADD UNIQUE (ID);
-       */
+      ALTER TABLE <table>
+      ADD UNIQUE (<single or comma-delimited multi-column>);
+      */
 
       $constraintColumns = $task->data->get('constraint_columns');
       $columns = is_array($constraintColumns) ? implode(',', $constraintColumns) : $constraintColumns;

@@ -80,14 +80,20 @@ abstract class modeladapter  {
   /**
    * Creates a new structural model for DDL
    */
-  public function __construct(string $schema, string $model, \codename\core\config $config, \codename\architect\config\environment $environment)
+  public function __construct(\codename\architect\dbdoc\dbdoc $dbdocInstance, string $schema, string $model, \codename\core\config $config, \codename\architect\config\environment $environment)
   {
+    $this->dbdoc = $dbdocInstance;
     $this->schema = $schema;
     $this->model = $model;
     $this->config = $config;
     $this->environment = $environment;
   }
 
+  /**
+   * [parent dbdoc instance]
+   * @var dbdoc
+   */
+  public $dbdoc;
 
   /**
    * [getPluginInstance description]

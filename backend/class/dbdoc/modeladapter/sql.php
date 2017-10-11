@@ -27,9 +27,9 @@ abstract class sql extends \codename\architect\dbdoc\modeladapter {
   /**
    * @inheritDoc
    */
-  public function __construct(string $schema, string $model, \codename\core\config $config, \codename\architect\config\environment $environment)
+  public function __construct(\codename\architect\dbdoc\dbdoc $dbdocInstance, string $schema, string $model, \codename\core\config $config, \codename\architect\config\environment $environment)
   {
-    parent::__construct($schema, $model, $config, $environment);
+    parent::__construct($dbdocInstance, $schema, $model, $config, $environment);
 
     // establish database connection
     // we require a special environment configuration

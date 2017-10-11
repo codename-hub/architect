@@ -25,8 +25,11 @@ class main extends \codename\core\context {
       $app = $this->getRequest()->getData('filter>app');
       $vendor = $this->getRequest()->getData('filter>vendor');
 
-      // TODO: check for validity! Compare to getSiblingApps return value!
+      $dbdoc = new \codename\architect\dbdoc\dbdoc($app, $vendor);
+      $dbdoc->run( $this->getRequest()->getData('exec') == '1' );
 
+      // TODO: check for validity! Compare to getSiblingApps return value!
+      /*
       $foreignAppstack = app::makeForeignAppstack($vendor, $app);
 
       $modelConfigurations = app::getModelConfigurations($vendor, $app, '', $foreignAppstack);
@@ -71,8 +74,9 @@ class main extends \codename\core\context {
           }
         }
       }
+      */
 
-      $this->getResponse()->setData('models', $modelList);
+      $this->getResponse()->setData('models', $dbdoc->models);
     } else {
       echo("something undefined:");
       print_r($this->getRequest()->getData());
