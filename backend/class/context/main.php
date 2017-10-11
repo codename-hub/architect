@@ -20,9 +20,6 @@ class main extends \codename\core\context {
     $this->getResponse()->setData('apps', $apps);
   }
 
-
-
-
   public function view_listmodels() {
     if($this->getRequest()->getData('filter>vendor') != null&& $this->getRequest()->getData('filter>app') != null) {
       $app = $this->getRequest()->getData('filter>app');
@@ -64,7 +61,15 @@ class main extends \codename\core\context {
           new \codename\core\config($m['config']),
           new \codename\architect\config\environment($environment, 'architect_' . app::getEnv())
         );
-        $dbdoc_ma->runDiagnostics();
+
+        $tasks = $dbdoc_ma->runDiagnostics();
+
+        if($this->getRequest()->getData('exec') == '1') {
+          foreach($tasks as $t) {
+            echo("executing task ... ");
+            $t->run();
+          }
+        }
       }
 
       $this->getResponse()->setData('models', $modelList);
