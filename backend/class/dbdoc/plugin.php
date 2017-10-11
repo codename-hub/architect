@@ -60,7 +60,7 @@ abstract class plugin {
    * @return string [description]
    */
   public function getPluginIdentifier() : string {
-    return str_replace('\\', '_', str_replace('\\codename\\architect\\dbdoc\\plugin\\', '', get_class($this)));
+    return str_replace('\\', '_', str_replace('codename\\architect\\dbdoc\\plugin\\', '', get_class($this)));
   }
 
   /**

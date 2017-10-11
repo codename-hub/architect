@@ -1,6 +1,7 @@
 <?php
 namespace codename\architect\dbdoc\plugin\sql;
 use \codename\architect\dbdoc\plugin;
+use codename\architect\dbdoc\task;
 
 /**
  * plugin for providing and comparing model table data
@@ -46,9 +47,13 @@ class table extends plugin\table {
 
     } else {
       // table does not exist
-
+      // create table
+      $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_TABLE", array(
+        'table' => $definition
+      ));
     }
 
     return $tasks;
   }
+
 }

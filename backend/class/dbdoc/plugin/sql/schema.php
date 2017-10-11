@@ -51,4 +51,18 @@ class schema extends plugin\schema {
     return $tasks;
   }
 
+  /**
+   * @inheritDoc
+   */
+  public function runTask(\codename\architect\dbdoc\task $task)
+  {
+    $db = $this->getSqlAdapter()->db;
+
+    if($task->name == 'CREATE_SCHEMA') {
+      // CREATE SCHEMA
+      $db->query("CREATE SCHEMA {$this->adapter->schema};");
+    }
+
+  }
+
 }

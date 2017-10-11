@@ -106,7 +106,11 @@ abstract class modeladapter  {
   }
 
 
-  public function runDiagnostics() {
+  /**
+   * [runDiagnostics description]
+   * @return task[] [description]
+   */
+  public function runDiagnostics() : array{
 
     // load plugins
     foreach($this->getPlugins() as $pluginIdentifier) {
@@ -131,6 +135,7 @@ abstract class modeladapter  {
       echo("<br> Task [{$taskType}] <em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
     }
 
+    return $tasks;
   }
 
   /**

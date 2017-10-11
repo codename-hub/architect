@@ -1,5 +1,7 @@
 <?php
 namespace codename\architect\dbdoc;
+use codename\core\exception;
+use codename\core\catchableException;
 
 /**
  * task class
@@ -90,20 +92,28 @@ class task {
    * @return [type] [description]
    */
   public function run() {
-    $plugin = $this->getPlugin();
+    $plugin = $this->getPlugin($this->data->get() ?? array());
     if($plugin != null) {
       $plugin->runTask($this);
+    } else {
+      throw new exception(self::EXCEPTION_DBDOC_TASK_RUN_PLUGIN_NOT_FOUND, exception::$ERRORLEVEL_FATAL, $this);
     }
   }
+
+  /**
+   * [public description]
+   * @var string
+   */
+  public const EXCEPTION_DBDOC_TASK_RUN_PLUGIN_NOT_FOUND = "EXCEPTION_DBDOC_TASK_RUN_PLUGIN_NOT_FOUND";
 
   /**
    * [getPlugin description]
    * @return plugin [description]
    */
-  protected function getPlugin() {
+  protected function getPlugin(array $data = array()) {
     $classname = "\\codename\\architect\\dbdoc\\plugin\\" . str_replace('_', '\\', $this->plugin);
     if(class_exists($classname) && !(new \ReflectionClass($classname))->isAbstract()) {
-      $plugin = new $classname($this->adapter);
+      $plugin = new $classname($this->adapter, $data);
       return $plugin;
     }
     return null;

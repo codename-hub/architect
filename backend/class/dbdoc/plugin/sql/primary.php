@@ -12,6 +12,23 @@ abstract class primary extends \codename\architect\dbdoc\plugin\primary {
   /**
    * @inheritDoc
    */
+  public function getDefinition()
+  {
+    $primarykey = parent::getDefinition();
+    $field = $primarykey;
+    return array(
+      'field' => $field,
+      'auto_increment' => true,
+      'notnull' => true,
+      'primary' => true,
+      'datatype' => $this->adapter->config->get('datatype>' . $field),
+      // 'db_column_type' => $this->adapter->config->get('datatype_override>' . $field)
+    );
+  }
+
+  /**
+   * @inheritDoc
+   */
   public function getStructure()
   {
     // get some column specifications
@@ -40,9 +57,7 @@ abstract class primary extends \codename\architect\dbdoc\plugin\primary {
     $definition = $this->getDefinition();
     $structure = $this->getStructure();
 
-    if($structure != null) {
-      print_r($definition);
-      print_r($structure);
+    if($structure == null) {
 
       // set task for PKEY creation
       $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_PRIMARYKEY", array(
@@ -53,15 +68,18 @@ abstract class primary extends \codename\architect\dbdoc\plugin\primary {
 
       // we just got the primary key of the table.
       // check for column equality
-      if($definition == $structure['column_name']) {
+      if($definition['field'] == $structure['column_name']) {
 
         // we got the right column, compare properties
-        $this->checkPrimaryKeyAttributes($structure);
+        $this->checkPrimaryKeyAttributes($definition, $structure);
 
       } else {
         // primary key set on wrong column/field !
         // task? info? error? modify?
-
+        $tasks[] = $this->createTask(task::TASK_TYPE_ERROR, "PRIMARYKEY_WRONG_COLUMN", array(
+            'field' => $definition['field'],
+            'column' => $structure['column_name']
+        ));
 
       }
     }
@@ -71,9 +89,10 @@ abstract class primary extends \codename\architect\dbdoc\plugin\primary {
   /**
    * this function checks a given structure information
    * for correctness and returns an array of tasks needed for completion
-   * @param  [type] $structure [description]
-   * @return task[]            [description]
+   * @param  [type] $definition [description]
+   * @param  [type] $structure  [description]
+   * @return task[]             [description]
    */
-  protected abstract function checkPrimaryKeyAttributes(array $structure) : array;
+  protected abstract function checkPrimaryKeyAttributes(array $definition, array $structure) : array;
 
 }
