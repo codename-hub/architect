@@ -1,6 +1,7 @@
 <?php
 namespace codename\architect\context;
 use \codename\architect\app;
+use codename\core\catchableException;
 
 /**
  * main context
@@ -21,7 +22,7 @@ class main extends \codename\core\context {
   }
 
   public function view_listmodels() {
-    if($this->getRequest()->getData('filter>vendor') != null&& $this->getRequest()->getData('filter>app') != null) {
+    if($this->getRequest()->getData('filter>vendor') != null && $this->getRequest()->getData('filter>app') != null) {
       $app = $this->getRequest()->getData('filter>app');
       $vendor = $this->getRequest()->getData('filter>vendor');
 
@@ -78,8 +79,16 @@ class main extends \codename\core\context {
 
       $this->getResponse()->setData('models', $dbdoc->models);
     } else {
-      echo("something undefined:");
-      print_r($this->getRequest()->getData());
+
+      if($this->getRequest()->getData('filter>vendor') == null) {
+        throw new catchableException("EXCEPTION_ARCHITECT_CONTEXT_MAIN_MISSING_FILTER_VENDOR", catchableException::$ERRORLEVEL_ERROR);
+      }
+      if($this->getRequest()->getData('filter>app') == null) {
+        throw new catchableException("EXCEPTION_ARCHITECT_CONTEXT_MAIN_MISSING_FILTER_APP", catchableException::$ERRORLEVEL_ERROR);
+      }
+
+      // echo("something undefined:");
+      // print_r($this->getRequest()->getData());
     }
   }
 
