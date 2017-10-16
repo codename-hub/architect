@@ -12,33 +12,17 @@ class app extends \codename\core\app {
   /**
    * @inheritDoc
    */
+  public function __CONSTRUCT()
+  {
+    parent::__CONSTRUCT();
+    $this->initDebug();
+  }
+  /**
+   * @inheritDoc
+   */
   public function run()
   {
     $value = parent::run();
-
-    // $this->printNamespaces();
-    /*
-    $apps = $this->getSiblingApps();
-    foreach($apps as $a) {
-
-      // build specific appstack
-      $foreignAppstack = app::makeAppstack($a['vendor'], $a['app']);
-
-      // debug
-      print_r($foreignAppstack);
-
-      // get all models from the respective app and traverse its ancestors, too.
-      $foreignModels = self::getModelConfigurations($a['vendor'], $a['app'], '', $foreignAppstack);
-
-      echo("<br>Models:<br>");
-      print_r($foreignModels);
-
-      foreach($foreignModels as $fm) {
-        // $fm->config->getData();
-      }
-
-    }
-    */
     return $value;
   }
 
