@@ -13,12 +13,21 @@ class initial extends \codename\architect\dbdoc\plugin\initial {
   public function Compare() : array
   {
     // call plugins
+    
+    // check for user existance
+    $plugin = $this->adapter->getPluginInstance('user');
+    if($plugin != null) {
+      // add this plugin to the first
+      $this->adapter->addToQueue($plugin, true);
+    }
 
     $plugin = $this->adapter->getPluginInstance('schema');
     if($plugin != null) {
       // add this plugin to the first
       $this->adapter->addToQueue($plugin, true);
     }
+
+
 
     return array();
   }
