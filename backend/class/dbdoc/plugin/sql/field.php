@@ -214,7 +214,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
   public function convertModelDataTypeToDbDataType($t) {
 
     if($t == null) {
-      throw new exception("EXCEPTION_DBDOC_PLUGIN_SQL_FIELD_MODEL_DATATYPE_NULL", exception::$ERRORLEVEL_ERROR);
+      throw new exception("EXCEPTION_DBDOC_PLUGIN_SQL_FIELD_MODEL_DATATYPE_NULL", exception::$ERRORLEVEL_ERROR, $this->parameter);
     }
 
 		// check for existing overrides/matching types
@@ -255,7 +255,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
   public function convertDbDataTypeToDbColumnTypeDefault($t) {
 
     if($t == null) {
-      throw new exception("EXCEPTION_DBDOC_PLUGIN_SQL_FIELD_NO_COLUMN_TYPE_TRANSLATION_AVAILABLE", exception::$ERRORLEVEL_ERROR);
+      throw new exception("EXCEPTION_DBDOC_PLUGIN_SQL_FIELD_NO_COLUMN_TYPE_TRANSLATION_AVAILABLE", exception::$ERRORLEVEL_ERROR, $this);
     }
 
     // check for existing overrides/matching types
