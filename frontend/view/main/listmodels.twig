@@ -8,7 +8,7 @@
     </tr>
   </thead>
   <tbody>
-    {% for model in models %}
+    {% for model in response.getData('models') %}
         <tr>
             <td>{{ model.model }}</td>
             <td>{{ model.schema }}</td>

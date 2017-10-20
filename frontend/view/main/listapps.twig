@@ -7,7 +7,7 @@
     </tr>
   </thead>
   <tbody>
-    {% for app in apps %}
+    {% for app in response.getData('apps') %}
         <tr>
             <td>{{ app.vendor }}</td>
             <td>{{ app.app }}</td>

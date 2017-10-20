@@ -4,6 +4,6 @@
         <title>{{ title }}</title>
     </head>
     <body>
-        {{ content|raw }}
+        {{ response.getData('content')|raw }}
     </body>
 </html>
