@@ -55,6 +55,9 @@ class dbdoc  {
    */
   public function init() {
 
+    // should init empty model array!
+    $this->models = array();
+
     $foreignAppstack = app::makeForeignAppstack($this->vendor, $this->app);
     $modelConfigurations = app::getModelConfigurations($this->vendor, $this->app, '', $foreignAppstack);
     $modelList = array();
