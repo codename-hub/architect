@@ -47,7 +47,7 @@ class dbdoc  {
    * [protected description]
    * @var \codename\architect\dbdoc\modeladapter
    */
-  protected $adapters;
+  protected $adapters = array();
 
   /**
    * [init description]
