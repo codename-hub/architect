@@ -26,6 +26,16 @@ class app extends \codename\core\app {
     return $value;
   }
 
+  /**
+   * @inheritDoc
+   */
+  protected function makeRequest()
+  {
+    parent::makeRequest();
+    if($this->getResponse() instanceof \codename\core\response\cli) {
+      $this->getResponse()->setData('templateengine', 'cli');
+    }
+  }
 
   public static function makeForeignAppstack(string $vendor, string $app) : array {
     return parent::makeAppstack($vendor, $app);
@@ -90,6 +100,16 @@ class app extends \codename\core\app {
     return $result;
   }
 
+  /**
+   * @inheritDoc
+   */
+  protected function makeRequest()
+  {
+    parent::makeRequest();
+    if($this->getResponse() instanceof \codename\core\response\cli) {
+      $this->getResponse()->setData('templateengine', 'cli');
+    }
+  }
 
   /**
    * returns an array of sibling app names

@@ -17,8 +17,15 @@ class main extends \codename\core\context {
   }
 
   public function view_listapps() {
+
     $apps = app::getSiblingApps();
     $this->getResponse()->setData('apps', $apps);
+
+    $table = new \codename\core\ui\frontend\element\table(array(
+      'templateengine' =>  $this->getResponse()->getData('templateengine') ?? 'default'
+    ), $apps);
+
+    $this->getResponse()->setData('table', $table->outputString());
   }
 
   public function view_listmodels() {
@@ -78,6 +85,13 @@ class main extends \codename\core\context {
       */
 
       $this->getResponse()->setData('models', $dbdoc->models);
+
+      $table = new \codename\core\ui\frontend\element\table(array(
+        'templateengine' =>  $this->getResponse()->getData('templateengine') ?? 'default'
+      ), $dbdoc->models);
+
+      $this->getResponse()->setData('table', $table->outputString());
+
     } else {
 
       if($this->getRequest()->getData('filter>vendor') == null) {
