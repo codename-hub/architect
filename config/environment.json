@@ -6,8 +6,14 @@
   },
   "dev": {
     "templateengine" : {
-      "twig_default" : {
+      "default" : {
+        "__comment" : "twig config used for default output",
         "driver" : "twig"
+      },
+      "cli" : {
+        "__comment" : "twig config used for cli-only output. forced in app class.",
+        "driver" : "twig",
+        "template_file_extension" : ".cli.twig"
       }
     },
     "filesystem": {
