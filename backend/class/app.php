@@ -37,6 +37,12 @@ class app extends \codename\core\app {
     }
   }
 
+  /**
+   * [makeForeignAppstack description]
+   * @param  string $vendor [description]
+   * @param  string $app    [description]
+   * @return array          [description]
+   */
   public static function makeForeignAppstack(string $vendor, string $app) : array {
     return parent::makeAppstack($vendor, $app);
   }
