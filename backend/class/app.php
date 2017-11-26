@@ -97,19 +97,10 @@ class app extends \codename\core\app {
         }
       }
     }
+
     return $result;
   }
 
-  /**
-   * @inheritDoc
-   */
-  protected function makeRequest()
-  {
-    parent::makeRequest();
-    if($this->getResponse() instanceof \codename\core\response\cli) {
-      $this->getResponse()->setData('templateengine', 'cli');
-    }
-  }
 
   /**
    * returns an array of sibling app names
