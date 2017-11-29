@@ -71,10 +71,26 @@ class dbdoc  {
   protected $app;
 
   /**
+   * returns the current app
+   * @return string
+   */
+  public function getApp() : string {
+    return $this->app;
+  }
+
+  /**
    * [protected description]
    * @var string
    */
   protected $vendor;
+
+  /**
+   * returns the current vendor
+   * @return string
+   */
+  public function getVendor() : string {
+    return $this->vendor;
+  }
 
   /**
    * [model configurations loaded]
@@ -177,15 +193,56 @@ class dbdoc  {
    */
   public function run(bool $exec = false) {
 
-    foreach($this->adapters as $dbdoc_ma) {
-      $tasks = $dbdoc_ma->runDiagnostics();
+    $tasks = array();
 
-      if($exec) {
-        foreach($tasks as $t) {
-          echo("executing task ... ");
+    foreach($this->adapters as $dbdoc_ma) {
+
+      $newTasks = $dbdoc_ma->runDiagnostics();
+      $filteredTasks = array();
+
+      // do some intelligent comparison between existing and to-be-merged tasks to cut out duplicates
+      foreach($newTasks as $newTask) {
+        $duplicate = false;
+        if($newTask->identifier != null) {
+          foreach($tasks as $existingTask) {
+            if($newTask->identifier == $existingTask->identifier) {
+              // mark as duplicate
+              $duplicate = true;
+              break;
+            }
+          }
+        }
+        if(!$duplicate) {
+          $filteredTasks[] = $newTask;
+        }
+      }
+
+      $tasks = array_merge($tasks, $filteredTasks);
+    }
+
+    foreach($tasks as $t) {
+      $taskType = task::TASK_TYPES[$t->type];
+
+      $addinfo = '';
+      // $addinfo = "[id:{$t->identifier}]";
+
+      echo("<br> Task [{$taskType}] {$addinfo}<em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
+    }
+
+    if($exec) {
+      foreach($tasks as $t) {
+        if($t->type == task::TASK_TYPE_REQUIRED) {
+          echo("executing required task ... ");
           $t->run();
         }
       }
+      /*
+      foreach($tasks as $t) {
+        if($t->type == task::TASK_TYPE_SUGGESTED) {
+          echo("executing suggested task ... ");
+          $t->run();
+        }
+      }*/
     }
 
   }

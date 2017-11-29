@@ -76,6 +76,12 @@ class task {
   public $name;
 
   /**
+   * [public description]
+   * @var string
+   */
+  public $identifier = null;
+
+  /**
    *
    */
   public function __construct(int $taskType, string $taskName, modeladapter $adapter, string $plugin, \codename\core\config $data)

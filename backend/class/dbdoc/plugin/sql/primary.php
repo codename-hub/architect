@@ -55,14 +55,19 @@ abstract class primary extends \codename\architect\dbdoc\plugin\primary {
   {
     $tasks = array();
     $definition = $this->getDefinition();
-    $structure = $this->getStructure();
+
+    // virtual = assume empty structure
+    $structure = $this->virtual ? null : $this->getStructure();
 
     if($structure == null) {
 
-      // set task for PKEY creation
-      $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_PRIMARYKEY", array(
-          'field' => $definition
-      ));
+      // in mysql, we prefer to create the table with the primary key, in the first place.
+      if(!$this->virtual) {
+        // set task for PKEY creation
+        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_PRIMARYKEY", array(
+            'field' => $definition
+        ));
+      }
 
     } else {
 

@@ -59,9 +59,14 @@ class fieldlist extends plugin\fieldlist {
     // otherwise, recommend harddeletion ?
 
     foreach($definition as $field) {
-      $plugin = $this->adapter->getPluginInstance('field', array(
-        'field' => $field
-      ));
+      $plugin = $this->adapter->getPluginInstance(
+        'field',
+        array(
+          'field' => $field
+        ),
+        $this->virtual // virtual on need.
+      );
+
       if($plugin != null) {
         // add this plugin to the first
         $this->adapter->addToQueue($plugin, true);

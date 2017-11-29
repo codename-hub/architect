@@ -11,7 +11,7 @@ namespace codename\architect\dbdoc\plugin;
  * plugin for providing and comparing index / indices field config in a model
  * @package architect
  */
-abstract class index extends \codename\architect\dbdoc\plugin {
+abstract class index extends \codename\architect\dbdoc\plugin\modelPrefix {
 
   /**
    * @inheritDoc

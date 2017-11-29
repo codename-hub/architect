@@ -44,7 +44,7 @@ class user extends \codename\architect\dbdoc\plugin\sql\user {
       );
       $passwordCorrect = $db->getResult()[0]['result'];
 
-
+      /*
       $db->query(
         "SELECT table_priv
           FROM mysql.tables_priv
@@ -61,6 +61,7 @@ class user extends \codename\architect\dbdoc\plugin\sql\user {
         // Format:  Select,Update,...
         $permissions = explode(',', $permissionsResult[0]['table_priv']);
       }
+      */
     } else {
       $passwordCorrect = null;
     }
@@ -68,7 +69,7 @@ class user extends \codename\architect\dbdoc\plugin\sql\user {
     return array(
       'user_exists' => $exists,
       'password_correct' => $passwordCorrect,
-      'permissions' => $permissions
+      //'permissions' => $permissions
     );
   }
 
@@ -92,40 +93,23 @@ class user extends \codename\architect\dbdoc\plugin\sql\user {
     if(!$structure['user_exists']) {
       // create user
       $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_USER", array());
+
     } else if(!$structure['password_correct']) {
       // change password
       $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CHANGE_PASSWORD", array());
-    } else {
-      // check permissions:
-
-      $needed = self::NEEDED_DML_GRANTS;
-      $missing = array();
-
-      foreach($needed as $permission) {
-        if(!self::in_arrayi($permission, $structure['permissions'])) {
-          $missing[] = $permission;
-        }
-      }
-
-      if(count($missing) > 0) {
-        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "GRANT_PERMISSIONS", array(
-          'permissions' => $missing
-        ));
-      }
-
     }
+
+    // run permissions plugin.
+    // virtual, if structure/user does not exist (yet)
+    $plugin = $this->adapter->getPluginInstance('permissions', array(), !$structure['user_exists']);
+    if($plugin != null) {
+      // add this plugin to the first
+      $this->adapter->addToQueue($plugin, true);
+    }
+
     return $tasks;
   }
 
-  /**
-   * [in_arrayi description]
-   * @param  [type] $needle   [description]
-   * @param  [type] $haystack [description]
-   * @return bool             [description]
-   */
-  protected static function in_arrayi($needle, $haystack) : bool {
-    return in_array(strtolower($needle), array_map('strtolower', $haystack));
-  }
 
   /**
    * @inheritDoc

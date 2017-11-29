@@ -5,7 +5,7 @@ namespace codename\architect\dbdoc\plugin;
  * plugin for providing and comparing model field data details
  * @package architect
  */
-abstract class field extends \codename\architect\dbdoc\plugin {
+abstract class field extends \codename\architect\dbdoc\plugin\modelPrefix {
 
   /**
    * @inheritDoc

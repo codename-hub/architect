@@ -18,7 +18,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
   {
     $definition = parent::getDefinition();
     if($definition['primary']) {
-      $plugin = $this->adapter->getPluginInstance('primary');
+      $plugin = $this->adapter->getPluginInstance('primary', array(), $this->virtual);
       $definition = array_replace($definition, $plugin->getDefinition());
     }
     if($definition['foreign']) {
@@ -70,13 +70,13 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
     // override with definition from primary plugin
     if($definition['primary']) {
-      $plugin = $this->adapter->getPluginInstance('primary');
+      $plugin = $this->adapter->getPluginInstance('primary', array(), $this->virtual);
       if($plugin != null) {
         $definition = $plugin->getDefinition();
       }
     }
 
-    $structure = $this->getStructure();
+    $structure = $this->virtual ? null : $this->getStructure();
 
     if($structure != null) {
       /*
@@ -121,13 +121,17 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       // print_r($definition);
       // print_r($structure);
 
-      // create create-field task
-      $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_COLUMN", array(
-        'field' => $definition['field'],
-        // 'datatype' => $definition['datatype'],
-        // 'datatype_override' => $definition['datatype_override'],
-        // 'db_datatype' => $definition['datatype_override'] ?? $this->convertModelDataTypeToDbType($definition['datatype']) // first item == default?
-      ));
+      // only create, if not primary
+      // if it is, it is created in the table plugin (at least for mysql)
+      if(!$definition['primary']) {
+        // create create-field task
+        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_COLUMN", array(
+          'field' => $definition['field'],
+          // 'datatype' => $definition['datatype'],
+          // 'datatype_override' => $definition['datatype_override'],
+          // 'db_datatype' => $definition['datatype_override'] ?? $this->convertModelDataTypeToDbType($definition['datatype']) // first item == default?
+        ));
+      }
     }
 
     return $tasks;

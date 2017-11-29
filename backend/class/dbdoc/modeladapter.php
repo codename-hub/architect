@@ -101,11 +101,11 @@ abstract class modeladapter  {
    * @param  array  $parameter        [description]
    * @return \codename\architect\dbdoc\plugin                  [description]
    */
-  public function getPluginInstance(string $pluginIdentifier, array $parameter = array()) {
+  public function getPluginInstance(string $pluginIdentifier, array $parameter = array(), bool $isVirtual = false) {
     foreach($this->getPluginCompat() as $compat) {
       $classname = "\\codename\\architect\\dbdoc\\plugin\\" . str_replace('_', '\\', $compat . '_' . $pluginIdentifier);
       if(class_exists($classname) && !(new \ReflectionClass($classname))->isAbstract()) {
-        return new $classname($this, $parameter);
+        return new $classname($this, $parameter, $isVirtual);
       }
     }
     return null;
@@ -136,10 +136,11 @@ abstract class modeladapter  {
       $plugin = $this->getNextQueuedPlugin();
     }
 
+    /*
     foreach($tasks as $t) {
       $taskType = task::TASK_TYPES[$t->type];
-      echo("<br> Task [{$taskType}] <em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
-    }
+      echo("<br> Task [{$taskType}] [id:{$t->identifier}] <em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
+    }*/
 
     return $tasks;
   }

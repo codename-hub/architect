@@ -5,7 +5,7 @@ namespace codename\architect\dbdoc\plugin;
  * plugin for providing and comparing database data
  * @package architect
  */
-abstract class database extends \codename\architect\dbdoc\plugin {
+abstract class database extends \codename\architect\dbdoc\plugin\connectionPrefix {
 
   /**
    * @inheritDoc

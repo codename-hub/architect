@@ -29,23 +29,23 @@ class schema extends plugin\schema {
   {
     $tasks = array();
     $definition = $this->getDefinition();
-    $structure = $this->getStructure();
 
-    if($structure) {
+    // virtual = assume empty structure
+    $structure = $this->virtual ? false : $this->getStructure();
 
-      // schema/database exists
-      // start subroutine plugins
-      $plugin = $this->adapter->getPluginInstance('table');
-      if($plugin != null) {
-        // add this plugin to the first
-        $this->adapter->addToQueue($plugin, true);
-      }
-
-    } else {
+    if(!$structure) {
       // schema/database does not exist
       $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_SCHEMA", array(
         'schema' => $definition
       ));
+    }
+
+    // schema/database exists
+    // start subroutine plugins
+    $plugin = $this->adapter->getPluginInstance('table', array(), !$structure);
+    if($plugin != null) {
+      // add this plugin to the first
+      $this->adapter->addToQueue($plugin, true);
     }
 
     return $tasks;

@@ -48,7 +48,9 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
     $tasks = array();
 
     $definition = $this->getDefinition();
-    $structure = $this->getStructure();
+
+    // virtual = assume empty structure
+    $structure = $this->virtual ? array() : $this->getStructure();
 
     $valid = array();
     $missing = array();

@@ -29,44 +29,47 @@ class table extends plugin\table {
   {
     $tasks = array();
     $definition = $this->getDefinition();
-    $structure = $this->getStructure();
 
-    if($structure) {
-      // table exists, start submodules
+    // if virtual, simulate nonexisting structure
+    $structure = $this->virtual ? false : $this->getStructure();
 
-      // foreign key plugin
-      if($this->adapter->config->get('foreign') != null) {
-        $plugin = $this->adapter->getPluginInstance('foreign');
-        if($plugin != null) {
-          $this->adapter->addToQueue($plugin, true);
-        }
-      }
-
-      // if unique key constraints exist
-      if($this->adapter->config->get('unique') != null) {
-        $plugin = $this->adapter->getPluginInstance('unique');
-        if($plugin != null) {
-          $this->adapter->addToQueue($plugin, true);
-        }
-      }
-
-      $plugin = $this->adapter->getPluginInstance('fieldlist');
-      if($plugin != null) {
-        $this->adapter->addToQueue($plugin, true);
-      }
-
-      // pkey first
-      $plugin = $this->adapter->getPluginInstance('primary');
-      if($plugin != null) {
-        $this->adapter->addToQueue($plugin, true);
-      }
-
-    } else {
+    // structure doesn't exist
+    if(!$structure) {
       // table does not exist
       // create table
       $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_TABLE", array(
         'table' => $definition
       ));
+    }
+
+    // either run sub-plugins virtually or the 'hard' way
+
+    // foreign key plugin
+    if($this->adapter->config->get('foreign') != null) {
+      $plugin = $this->adapter->getPluginInstance('foreign', array(), $this->virtual);
+      if($plugin != null) {
+        $this->adapter->addToQueue($plugin, true);
+      }
+    }
+
+    // if unique key constraints exist
+    if($this->adapter->config->get('unique') != null) {
+      $plugin = $this->adapter->getPluginInstance('unique', array(), $this->virtual);
+      if($plugin != null) {
+        $this->adapter->addToQueue($plugin, true);
+      }
+    }
+
+    //N fieldlist
+    $plugin = $this->adapter->getPluginInstance('fieldlist', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
+    }
+
+    // pkey first
+    $plugin = $this->adapter->getPluginInstance('primary', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
     }
 
     return $tasks;

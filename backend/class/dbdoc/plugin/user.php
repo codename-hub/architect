@@ -6,7 +6,7 @@ use codename\core\exception;
  * plugin for providing and comparing user settings for the database
  * @package architect
  */
-abstract class user extends \codename\architect\dbdoc\plugin {
+abstract class user extends \codename\architect\dbdoc\plugin\connectionPrefix {
 
   /**
    * @inheritDoc

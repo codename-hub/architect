@@ -5,7 +5,7 @@ namespace codename\architect\dbdoc\plugin;
  * plugin for providing and comparing model field data
  * @package architect
  */
-abstract class fieldlist extends \codename\architect\dbdoc\plugin {
+abstract class fieldlist extends \codename\architect\dbdoc\plugin\modelPrefix {
 
   /**
    * @inheritDoc

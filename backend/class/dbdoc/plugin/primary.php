@@ -6,7 +6,7 @@ use codename\core\catchableException;
  * plugin for providing and comparing model primary key config
  * @package architect
  */
-abstract class primary extends \codename\architect\dbdoc\plugin {
+abstract class primary extends \codename\architect\dbdoc\plugin\modelPrefix {
 
   /**
    * [EXCEPTION_DBDOC_PLUGIN_PRIMARY_GETDEFINITION_MISSING description]
