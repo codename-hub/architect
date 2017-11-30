@@ -14,8 +14,14 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
   public function getDefinition()
   {
     $definition = parent::getDefinition();
-    $definition['db_data_type'] = $this->adapter->config->get('db_data_type>'.$this->parameter['field']) ?? $this->convertModelDataTypeToDbDataType($this->adapter->config->get('datatype>'.$this->parameter['field']));
-    $definition['db_column_type'] = $this->adapter->config->get('db_column_type>'.$this->parameter['field']) ?? $this->convertDbDataTypeToDbColumnTypeDefault($definition['db_data_type']);
+    // TODO: check if this is the correct behaviour
+    // the base class sql\field may already set db_data_type, e.g. if it's a primary key
+    if(!isset($definition['db_data_type'])) {
+      $definition['db_data_type'] = $this->adapter->config->get('db_data_type>'.$this->parameter['field']) ?? $this->convertModelDataTypeToDbDataType($this->adapter->config->get('datatype>'.$this->parameter['field']));
+    }
+    if(!isset($definition['db_column_type'])) {
+      $definition['db_column_type'] = $this->adapter->config->get('db_column_type>'.$this->parameter['field']) ?? $this->convertDbDataTypeToDbColumnTypeDefault($definition['db_data_type']);
+    }
     return $definition;
   }
 
