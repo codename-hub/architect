@@ -73,13 +73,6 @@ class user extends \codename\architect\dbdoc\plugin\sql\user {
     );
   }
 
-  protected const NEEDED_DML_GRANTS = array(
-    'select',
-    'insert',
-    'update',
-    'delete' // TODO: we should NOT include this - instead, mark rows as is_deleted = TRUE
-  );
-
   /**
    * @inheritDoc
    */
