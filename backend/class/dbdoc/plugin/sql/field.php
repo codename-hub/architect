@@ -127,6 +127,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
         // create create-field task
         $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "CREATE_COLUMN", array(
           'field' => $definition['field'],
+          // 'def' => $definition
           // 'datatype' => $definition['datatype'],
           // 'datatype_override' => $definition['datatype_override'],
           // 'db_datatype' => $definition['datatype_override'] ?? $this->convertModelDataTypeToDbType($definition['datatype']) // first item == default?

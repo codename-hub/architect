@@ -77,10 +77,46 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
     $missing = array_diff_key($definition, $valid);
 
     foreach($missing as $field => $def) {
-      $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_FOREIGNKEY_CONSTRAINT", array(
-        'field' => $field,
-        'config' => $def
-      ));
+
+      $precededBy = array();
+
+      // let the task be preceded by tasks related to the existance of the foreign field
+      $foreignAdapter = $this->adapter->dbdoc->getAdapter($def['schema'], $def['model']);
+      $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $def['key']));
+      if($plugin != null) {
+        $precededBy[] = $plugin->getTaskIdentifierPrefix();
+      }
+
+      // the foreign table
+      $plugin = $foreignAdapter->getPluginInstance('table');
+      if($plugin != null) {
+        $precededBy[] = $plugin->getTaskIdentifierPrefix();
+      }
+
+      // let the task be preceded by tasks related to the existance the field itself
+      $plugin = $this->adapter->getPluginInstance('field', array('field' => $field));
+      if($plugin != null) {
+        $precededBy[] = $plugin->getTaskIdentifierPrefix();
+      }
+
+      // the current table
+      $plugin = $this->adapter->getPluginInstance('table');
+      if($plugin != null) {
+        $precededBy[] = $plugin->getTaskIdentifierPrefix();
+      }
+
+      // echo("<pre>{$field} preceded by: \n" . print_r($def,true) . "</pre>");
+      // echo("<pre>foreign plugin, preceded by: \n" . print_r($definition,true) . "</pre>");
+
+      echo("<pre>{$field} preceded by: \n" . print_r($precededBy,true) . "</pre>");
+
+      $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_FOREIGNKEY_CONSTRAINT",
+        array(
+          'field' => $field,
+          'config' => $def,
+        ),
+        $precededBy
+      );
     }
 
     return $tasks;

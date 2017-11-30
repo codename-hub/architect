@@ -187,6 +187,48 @@ class dbdoc  {
   }
 
   /**
+   * stable usort function
+   * @var [type]
+   */
+  protected static function stable_usort(array &$array, $value_compare_func)
+	{
+		$index = 0;
+		foreach ($array as &$item) {
+			$item = array($index++, $item);
+		}
+		$result = usort($array, function($a, $b) use($value_compare_func) {
+			$result = call_user_func($value_compare_func, $a[1], $b[1]);
+			return $result == 0 ? $a[0] - $b[0] : $result;
+		});
+		foreach ($array as &$item) {
+			$item = $item[1];
+		}
+		return $result;
+	}
+
+  /**
+   * [uasort description]
+   * @param  array  $array              [description]
+   * @param  [type] $value_compare_func [description]
+   * @return [type]                     [description]
+   */
+  protected static function stable_uasort(array &$array, $value_compare_func)
+	{
+		$index = 0;
+		foreach ($array as &$item) {
+			$item = array($index++, $item);
+		}
+		$result = uasort($array, function($a, $b) use($value_compare_func) {
+			$result = call_user_func($value_compare_func, $a[1], $b[1]);
+			return $result == 0 ? $a[0] - $b[0] : $result;
+		});
+		foreach ($array as &$item) {
+			$item = $item[1];
+		}
+		return $result;
+	}
+
+  /**
    * [run description]
    * @param  boolean  $exec       [execute the tasks]
    * @param  int[]    $exec_tasks [limit execution to specific task types. task::TASK_TYPE_...]
@@ -221,16 +263,87 @@ class dbdoc  {
       $tasks = array_merge($tasks, $filteredTasks);
     }
 
-    /*
-    foreach($tasks as $t) {
-      $taskType = task::TASK_TYPES[$t->type];
+    // priority sorting, based on precededBy value
+    $sort_success = self::stable_usort($tasks, function(task $taskA, task $taskB) {
 
-      $addinfo = '';
-      // $addinfo = "[id:{$t->identifier}]";
-      // echo("<br> Task [{$taskType}] {$addinfo}<em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
+      /*
+      echo("<hr>");
+      echo("<br>{$taskA->name} vs. {$taskB->name}");
+      echo("<br>taskA: {$taskA->identifier}");
+      echo("<br>taskB: {$taskB->identifier}");
+      echo("<pre>TaskA.precededBy:\n". print_r($taskA->precededBy,true) . "\nTaskB.precededBy:\n". print_r($taskB->precededBy,true) ."</pre>");
+      */
+
+      if((count($taskA->precededBy) == 0) && (count($taskB->precededBy) == 0)) {
+        // no precendence defined
+        // echo("<br>{$taskA->name} == {$taskB->name}");
+        return 0;
+      }
+
+
+      /*
+      if(in_array($taskB->identifier, $taskA->precededBy)) {
+        echo("<br>{$taskA->name} < {$taskB->name}");
+        return -1;
+      }
+      */
+
+      /* if(in_array($taskA->identifier, $taskB->precededBy)) {
+        echo("<br>{$taskA->name} > {$taskB->name}");
+        return 1;
+      }*/
+
+      // check if B requires A
+      foreach($taskB->precededBy as $identifier) {
+        // echo("<br> -- comparing {$identifier} ___ AND ___ {$taskA->identifier}");
+        if( (strlen($taskA->identifier) >= strlen($identifier)) && strpos($taskA->identifier, $identifier) === 0) {
+          /*
+          echo("<br>");
+          echo("<br>{$taskA->name} vs. {$taskB->name}");
+          echo("<br>taskA: {$taskA->identifier}");
+          echo("<br>taskB: {$taskA->identifier}");
+          */
+          // echo("<br> -- {$taskA->name} > {$taskB->name}");
+
+          return -1;
+        }
+      }
+
+      // check if A requires B
+      foreach($taskA->precededBy as $identifier) {
+        // echo("<br> -- comparing {$identifier} ___ AND ___ {$taskB->identifier}");
+        if( (strlen($taskB->identifier) >= strlen($identifier)) && strpos($taskB->identifier, $identifier) === 0) {
+          /*
+          echo("<br>");
+          echo("<br>{$taskA->name} vs. {$taskB->name}");
+          echo("<br>taskA: {$taskA->identifier}");
+          echo("<br>taskB: {$taskA->identifier}");
+          */
+          // echo("<br> -- {$taskA->name} < {$taskB->name}");
+          return +1;
+        }
+      }
+
+      /*
+      echo("<br>");
+      echo("<br>{$taskA->name} vs. {$taskB->name}");
+      echo("<br>taskA: {$taskA->identifier}");
+      echo("<br>taskB: {$taskB->identifier}");
+      echo("<pre>TaskA.precededBy:\n". print_r($taskA->precededBy,true) . "\nTaskB.precededBy:\n". print_r($taskB->precededBy,true) ."</pre>");
+      */
+
+      // echo("<br> -- {$taskA->name} == {$taskB->name}");
+      // echo("<br>{$taskA->name} == {$taskB->name} : " . var_export($taskA->precededBy,true) . var_export($taskB->precededBy,true));
+      // echo("<br> -- equal (no precedence).");
+
+      return +1; // was 0
+    });
+
+    if(!$sort_success) {
+      echo("Sort unsuccessful!");
+      die();
     }
-    */
-
+    
     $availableTasks = array();
     $availableTaskTypes = array();
     $executedTasks = array();

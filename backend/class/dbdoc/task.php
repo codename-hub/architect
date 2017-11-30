@@ -82,6 +82,13 @@ class task {
   public $identifier = null;
 
   /**
+   * task identifier prefixes
+   * that should precede this task
+   * @var string[]
+   */
+  public $precededBy = array();
+
+  /**
    *
    */
   public function __construct(int $taskType, string $taskName, modeladapter $adapter, string $plugin, \codename\core\config $data)

@@ -86,13 +86,15 @@ abstract class plugin {
 
   /**
    * [createTask description]
-   * @param  [type] $taskType [description]
-   * @param  string $taskName [description]
-   * @param  array  $config   [description]
+   * @param  int    $taskType     [task type ]
+   * @param  string $taskName     [custom task name]
+   * @param  array  $config       [configuration]
+   * @param  array  $precendence  [task identifer prefixes that have to be finished first]
    * @return [type]           [description]
    */
-  protected function createTask(int $taskType = task::TASK_TYPE_INFO, string $taskName, array $config = array()) {
+  protected function createTask(int $taskType = task::TASK_TYPE_INFO, string $taskName, array $config = array(), array $precededBy = array()) {
     $task = new \codename\architect\dbdoc\task($taskType, $taskName, $this->adapter, $this->getPluginIdentifier(), new \codename\core\config($config));
+    $task->precededBy = $precededBy;
     $task->identifier = "{$this->getTaskIdentifierPrefix()}_{$taskType}_{$taskName}_". serialize($config);
     return $task;
   }
