@@ -125,4 +125,12 @@ class task {
     return null;
   }
 
+  /**
+   * [getTaskTypeName description]
+   * @return string [description]
+   */
+  public function getTaskTypeName() : string {
+    return self::TASK_TYPES[$this->type];
+  }
+
 }
