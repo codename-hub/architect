@@ -1,7 +1,27 @@
 {
   "production" : {
     "log" : {
-
+      "errormessage": {
+				"driver": "file",
+				"data": {
+					"name": "architect_error",
+					"minlevel" : -3
+				}
+			},
+      "debug": {
+				"driver": "dummy",
+				"data": {
+					"name": "architect_debug",
+					"minlevel" : -2
+				}
+			},
+      "access": {
+				"driver": "dummy",
+				"data": {
+					"name": "architect_access",
+					"minlevel" : -5
+				}
+			}
     }
   },
   "dev": {
@@ -28,28 +48,28 @@
     },
     "session" : {
 			"default" : {
-				"driver" : "session"
+				"driver" : "dummy"
 			}
 		},
     "log" : {
       "errormessage": {
 				"driver": "file",
 				"data": {
-					"name": "cn_errormessage",
+					"name": "architect_error",
 					"minlevel" : -3
 				}
 			},
       "debug": {
 				"driver": "file",
 				"data": {
-					"name": "cn_debug",
+					"name": "architect_debug",
 					"minlevel" : -2
 				}
 			},
       "access": {
 				"driver": "file",
 				"data": {
-					"name": "cn_access",
+					"name": "architect_access",
 					"minlevel" : -5
 				}
 			},
