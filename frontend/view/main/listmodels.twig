@@ -1,3 +1,40 @@
+<h2>Build Tasks</h2>
+<pre>
+  Vendor:   {{ request.getData('filter>vendor') }}
+  App:      {{ request.getData('filter>app') }}
+</pre>
+
+<h3>Actions:</h3>
+<ul>
+  {% for tasktype_name, tasktype_value in response.getData('dbdoc_stats>available_task_types') %}
+  <li>
+    <a href="{{ url('main/listmodels',
+      {
+        'filter' : request.getData('filter'),
+        'exec': 1,
+        'exec_tasks': [
+          tasktype_value
+        ]
+      }
+      ) }}">Execute {{tasktype_name}}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+<hr>
+
+<h3>Available Tasks</h3>
+<ul>
+  {% for task in response.getData('dbdoc_stats>available_tasks') %}
+  <li>
+    Task [{{ task.getTaskTypeName() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
+  </li>
+  {% endfor %}
+</ul>
+
+<hr>
+
+<h3>Some header</h3>
 <table>
   <thead>
     <tr>
@@ -19,3 +56,14 @@
     {% endfor %}
   </tbody>
 </table>
+
+<hr>
+
+<h3>Statistics</h3>
+<ul>
+  {% for task in response.getData('dbdoc_stats>executed_tasks') %}
+  <li>
+    Task [{{ task.getTaskTypeName() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
+  </li>
+  {% endfor %}
+</ul>

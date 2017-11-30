@@ -188,10 +188,11 @@ class dbdoc  {
 
   /**
    * [run description]
-   * @param  boolean $exec [description]
-   * @return [type]        [description]
+   * @param  boolean  $exec       [execute the tasks]
+   * @param  int[]    $exec_tasks [limit execution to specific task types. task::TASK_TYPE_...]
+   * @return array                [some data]
    */
-  public function run(bool $exec = false) {
+  public function run(bool $exec = false, array $exec_tasks = array( )) : array {
 
     $tasks = array();
 
@@ -220,30 +221,64 @@ class dbdoc  {
       $tasks = array_merge($tasks, $filteredTasks);
     }
 
+    /*
     foreach($tasks as $t) {
       $taskType = task::TASK_TYPES[$t->type];
 
       $addinfo = '';
       // $addinfo = "[id:{$t->identifier}]";
-
-      echo("<br> Task [{$taskType}] {$addinfo}<em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
+      // echo("<br> Task [{$taskType}] {$addinfo}<em>{$t->plugin}</em>::<strong>{$t->name}</strong> " . var_export($t->data, true));
     }
+    */
 
-    if($exec) {
-      foreach($tasks as $t) {
-        if($t->type == task::TASK_TYPE_REQUIRED) {
-          echo("executing required task ... ");
-          $t->run();
+    $availableTasks = array();
+    $availableTaskTypes = array();
+    $executedTasks = array();
+
+    foreach($tasks as $t) {
+      // if($t->type == task::TASK_TYPE_REQUIRED) {
+
+      if($exec) {
+        // validate the task type itself
+        if(count($errors = app::getValidator('number_tasktype')->reset()->validate($t->type)) === 0) {
+          $taskType = task::TASK_TYPES[$t->type];
+
+          // check if requested
+          if(in_array($t->type, $exec_tasks)) {
+            // echo("<br>executing {$taskType} task ... ");
+            $executedTasks[] = $t;
+
+            // Run the task!
+            $t->run();
+          } else {
+            // echo("<br>skipping {$taskType} task ... ");
+            $availableTaskTypes[] = $t->type;
+            $availableTasks[] = $t;
+          }
+        } else {
+          // echo("<br>invalid {$taskType}, skipping ... ");
         }
+      } else {
+        $availableTaskTypes[] = $t->type;
+        $availableTasks[] = $t;
       }
-      /*
-      foreach($tasks as $t) {
-        if($t->type == task::TASK_TYPE_SUGGESTED) {
-          echo("executing suggested task ... ");
-          $t->run();
-        }
-      }*/
+
     }
+
+    $availableTaskTypes = array_unique($availableTaskTypes);
+    // translate:
+    $availableTaskTypesAssoc = array();
+    foreach($availableTaskTypes as $type) {
+      $availableTaskTypesAssoc[task::TASK_TYPES[$type]] = $type;
+    }
+
+    return array(
+      'tasks' => $tasks,
+      'available_tasks' => $availableTasks,
+      'available_task_types' => $availableTaskTypesAssoc,
+      'executed_tasks' => $executedTasks,
+      'executed_task_types' => $exec_tasks
+    );
 
   }
 

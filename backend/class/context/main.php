@@ -1,6 +1,7 @@
 <?php
 namespace codename\architect\context;
 use \codename\architect\app;
+use codename\architect\dbdoc\task;
 use codename\core\catchableException;
 
 /**
@@ -33,8 +34,23 @@ class main extends \codename\core\context {
       $app = $this->getRequest()->getData('filter>app');
       $vendor = $this->getRequest()->getData('filter>vendor');
 
+      $exec_tasks = $this->getRequest()->getData('exec_tasks') ? array_values($this->getRequest()->getData('exec_tasks')) : array(task::TASK_TYPE_REQUIRED); // by default, only execute required tasks
+
+      /*
+      echo("<pre>");
+      print_r($this->getRequest()->getData());
+      print_r($exec_tasks);
+      echo("</pre>");
+      */
+     
       $dbdoc = new \codename\architect\dbdoc\dbdoc($app, $vendor);
-      $dbdoc->run( $this->getRequest()->getData('exec') == '1' );
+
+      $stats = $dbdoc->run(
+        $this->getRequest()->getData('exec') == '1',
+        $exec_tasks
+      );
+
+      $this->getResponse()->setData('dbdoc_stats', $stats);
 
       // TODO: check for validity! Compare to getSiblingApps return value!
       /*
