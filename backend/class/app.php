@@ -17,14 +17,6 @@ class app extends \codename\core\app {
     parent::__CONSTRUCT();
     $this->initDebug();
   }
-  /**
-   * @inheritDoc
-   */
-  public function run()
-  {
-    $value = parent::run();
-    return $value;
-  }
 
   /**
    * @inheritDoc
@@ -210,8 +202,12 @@ class app extends \codename\core\app {
       return $_REQUEST['instances'][$simplename] = new $classname($config);
   }
 
-
-
+  /**
+   * [printNamespaces description]
+   * only needed for debug purposes.
+   * may be removed in the future
+   * @return [type] [description]
+   */
   protected function printNamespaces() {
     $namespaces=array();
     foreach(get_declared_classes() as $name) {
