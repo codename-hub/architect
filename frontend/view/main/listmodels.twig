@@ -34,29 +34,8 @@
 
 <hr>
 
-<h3>Some header</h3>
-<table>
-  <thead>
-    <tr>
-      <td>Model</td>
-      <td>Schema</td>
-      <td>Driver</td>
-      <td>Action</td>
-    </tr>
-  </thead>
-  <tbody>
-    {% for model in response.getData('models') %}
-        <tr>
-            <td>{{ model.model }}</td>
-            <td>{{ model.schema }}</td>
-            <td>{{ model.driver }}</td>
-
-            <td><a href="{{ url('main/listmodels/dostuff', { 'vendor' : app.vendor, 'app' : app.app, 'model' : model.identifier }) }}">DoStuff</a></td>
-        </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
+<h3>Models</h3>
+{{ response.getData('table')|raw}}
 <hr>
 
 <h3>Statistics</h3>

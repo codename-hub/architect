@@ -137,7 +137,7 @@ class dbdoc  {
       }
     }
 
-    $this->modelList = $modelList;
+    $this->models = $modelList;
 
     // Load this file by default - plus inheritance
     // 'config/environment.json'
@@ -154,7 +154,7 @@ class dbdoc  {
     }
 
     // initialize model adapters
-    foreach($this->modelList as $m) {
+    foreach($this->models as $m) {
       $this->adapters[] = new \codename\architect\dbdoc\modeladapter\sql\mysql(
         $this,
         $m['schema'],
@@ -343,7 +343,7 @@ class dbdoc  {
       echo("Sort unsuccessful!");
       die();
     }
-    
+
     $availableTasks = array();
     $availableTaskTypes = array();
     $executedTasks = array();

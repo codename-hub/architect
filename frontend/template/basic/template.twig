@@ -4,6 +4,7 @@
         <title>{{ title }}</title>
     </head>
     <body>
+        {% include 'view/header/header' %}
         {{ response.getData('content')|raw }}
     </body>
 </html>

@@ -42,7 +42,7 @@ class main extends \codename\core\context {
       print_r($exec_tasks);
       echo("</pre>");
       */
-     
+
       $dbdoc = new \codename\architect\dbdoc\dbdoc($app, $vendor);
 
       $stats = $dbdoc->run(
@@ -103,7 +103,8 @@ class main extends \codename\core\context {
       $this->getResponse()->setData('models', $dbdoc->models);
 
       $table = new \codename\core\ui\frontend\element\table(array(
-        'templateengine' =>  $this->getResponse()->getData('templateengine') ?? 'default'
+        'templateengine' =>  $this->getResponse()->getData('templateengine') ?? 'default',
+        'columns' => [ /* 'vendor', 'app', */ 'identifier', 'model',  'schema', 'driver' ]
       ), $dbdoc->models);
 
       $this->getResponse()->setData('table', $table->outputString());

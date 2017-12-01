@@ -1,3 +1,35 @@
 Models in {{ request.getData('filter')['vendor']}}\{{ request.getData('filter')['app']}}
 
-{{ response.getData('table') }}
+*** Build Tasks
+
+  Vendor:   {{ request.getData('filter>vendor') }}
+  App:      {{ request.getData('filter>app') }}
+
+*** Actions:
+
+{% for tasktype_name, tasktype_value in response.getData('dbdoc_stats>available_task_types') %}
+{{tasktype_name}}:  {% for key,value in request.getData('filter') %}--filter[{{key}}]={{value}}{% endfor %}{#
+  #} --exec=1 --exec_tasks[]={{tasktype_value}}
+{% endfor %}
+
+----------
+
+*** Available Tasks
+
+{% for task in response.getData('dbdoc_stats>available_tasks') %}
+  Task [{{ cli_format(task.getTaskTypeName(), 'blue') }}] {{ cli_format(task.plugin, 'yellow') }}::{{ cli_format(task.name, 'green') }} {% if request.getData('verbose') %}{{ cli_format(print_r(task.data.get()), 'gray') }}{% endif %}
+
+{% endfor %}
+
+----------
+
+*** Models
+
+{{ response.getData('table')|raw}}
+
+----------
+
+*** Statistics
+{% for task in response.getData('dbdoc_stats>executed_tasks') %}
+  Task [{{ cli_format(task.getTaskTypeName(), 'blue') }}] {{ cli_format(task.plugin, 'yellow') }}::{{ cli_format(task.name, 'light_red') }} {{ cli_format(print_r(task.data.get()), 'gray') }}
+{% endfor %}
