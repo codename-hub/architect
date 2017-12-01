@@ -108,7 +108,7 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
       // echo("<pre>{$field} preceded by: \n" . print_r($def,true) . "</pre>");
       // echo("<pre>foreign plugin, preceded by: \n" . print_r($definition,true) . "</pre>");
 
-      echo("<pre>{$field} preceded by: \n" . print_r($precededBy,true) . "</pre>");
+      //echo("<pre>{$field} preceded by: \n" . print_r($precededBy,true) . "</pre>");
 
       $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_FOREIGNKEY_CONSTRAINT",
         array(
