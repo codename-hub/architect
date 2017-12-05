@@ -85,6 +85,10 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
       $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $def['key']));
       if($plugin != null) {
         $precededBy[] = $plugin->getTaskIdentifierPrefix();
+      } else {
+        // cancel here, as we might reference a model that can't be constructed
+        // in this case, the field plugin is null
+        continue;
       }
 
       // the foreign table
