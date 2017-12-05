@@ -131,7 +131,7 @@ class dbdoc  {
           'vendor' => $this->vendor,
           'app' => $this->app,
           'schema' => $schema,
-          'driver' => 'dummy value',
+          // 'driver' => 'dummy value',
           'config' => $modelConfig[0] // ??
         );
       }
@@ -154,15 +154,85 @@ class dbdoc  {
     }
 
     // initialize model adapters
-    foreach($this->models as $m) {
+    foreach($this->models as &$m) {
+
+      // skip models without connection
+      /* if(empty($m['config']['connection'])) {
+        continue;
+      }*/
+      /*
       $this->adapters[] = new \codename\architect\dbdoc\modeladapter\sql\mysql(
         $this,
         $m['schema'],
         $m['model'],
         new \codename\core\config($m['config']),
         new \codename\architect\config\environment($this->environment->get(), $prefixedEnvironmentName) // prefixed environment name: e.g. architect_dev, see above
+      );*/
+
+      $modelAdapter = $this->getModelAdapter(
+        $m['schema'],
+        $m['model'],
+        $m['config'],
+        new \codename\architect\config\environment($this->environment->get(), $prefixedEnvironmentName)
       );
+
+      if($modelAdapter != null) {
+        $this->adapters[] = $modelAdapter;
+        $m['driver'] = get_class($modelAdapter);
+      } else {
+        // error?
+      }
     }
+  }
+
+  /**
+   * translate env config drivers to namespaced modeladapters
+   * @var [type]
+   */
+  protected static $driverTranslation = array(
+    'mysql' => 'sql\\mysql',
+    'mysql' => 'sql\\mysql',
+  );
+
+  /**
+   * [getModelAdapter description]
+   * @param  string                                 $schema [description]
+   * @param  string                                 $model  [description]
+   * @param  array                                  $config [description]
+   * @param  \codename\architect\config\environment     $env    [description]
+   * @return \codename\architect\dbdoc\modeladapter         [description]
+   */
+  protected function getModelAdapter(string $schema, string $model, array $config, \codename\architect\config\environment $env) {
+
+    // fallback adapter
+    $driver = 'bare';
+
+    if(!empty($config['connection'])) {
+      // explicit connection.
+      // we can identify the driver used
+      $envDriver = $env->get('database>'.$config['connection'].'>driver');
+      $driver = self::$driverTranslation[$envDriver] ?? null;
+    }
+
+    if($driver == null) {
+      return null;
+    }
+
+    $class = '\\codename\\architect\\dbdoc\\modeladapter\\' . $driver;
+
+    if(class_exists($class)) {
+      return new $class(
+        $this,
+        $schema,
+        $model,
+        new \codename\core\config($config),
+        $env // prefixed environment name: e.g. architect_dev, see above
+      );
+    } else {
+      // unknown driver
+    }
+
+    return null;
   }
 
   /**
@@ -177,7 +247,7 @@ class dbdoc  {
    * @param  string                                 $model  [description]
    * @return \codename\architect\dbdoc\modeladapter         [description]
    */
-  public function getAdapter(string $schema, string $model) : \codename\architect\dbdoc\modeladapter {
+  public function getAdapter(string $schema, string $model) {
     foreach($this->adapters as $adapter) {
       if($adapter->schema == $schema && $adapter->model == $model) {
         return $adapter;
