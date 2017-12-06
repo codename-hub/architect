@@ -23,7 +23,13 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
     }
     if($definition['foreign']) {
       // we have to get field information from a different model (!)
-      $foreignAdapter = $this->adapter->dbdoc->getAdapter($definition['foreign']['schema'], $definition['foreign']['model']);
+      // , $def['app'] ?? '', $def['vendor'] ?? ''
+      $foreignAdapter = $this->adapter->dbdoc->getAdapter(
+        $definition['foreign']['schema'],
+        $definition['foreign']['model'],
+        $definition['foreign']['app'] ?? '',
+        $definition['foreign']['vendor'] ?? ''
+      );
       $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $definition['foreign']['key']));
       if($plugin != null) {
         $foreignDefinition = $plugin->getDefinition();

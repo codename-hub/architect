@@ -247,7 +247,16 @@ class dbdoc  {
    * @param  string                                 $model  [description]
    * @return \codename\architect\dbdoc\modeladapter         [description]
    */
-  public function getAdapter(string $schema, string $model) {
+  public function getAdapter(string $schema, string $model, string $app = '', string $vendor = '') {
+    $app = ($app == '') ? $this->getApp() : $app;
+    $vendor = ($vendor == '') ? $this->getVendor() : $vendor;
+
+    if(($this->getApp() != $app) || ($this->getVendor() != $vendor)) {
+      // get a foreign adapter
+      // init a new dbdoc instance
+      $foreignDbDoc = new self($app, $vendor);
+      return $foreignDbDoc->getAdapter($schema, $model, $app, $vendor);
+    }
     foreach($this->adapters as $adapter) {
       if($adapter->schema == $schema && $adapter->model == $model) {
         return $adapter;

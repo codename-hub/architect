@@ -81,7 +81,8 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
       $precededBy = array();
 
       // let the task be preceded by tasks related to the existance of the foreign field
-      $foreignAdapter = $this->adapter->dbdoc->getAdapter($def['schema'], $def['model']);
+      $foreignAdapter = $this->adapter->dbdoc->getAdapter($def['schema'], $def['model'], $def['app'] ?? '', $def['vendor'] ?? '');
+
       $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $def['key']));
       if($plugin != null) {
         $precededBy[] = $plugin->getTaskIdentifierPrefix();
