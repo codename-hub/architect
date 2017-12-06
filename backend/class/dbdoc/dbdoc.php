@@ -150,7 +150,7 @@ class dbdoc  {
     if(!$this->environment->exists($prefixedEnvironmentName)) {
       // this is needed.
       // warn user/admin we're missing an important configuration part.
-    	throw new exception(self::EXCEPTION_ARCHITECT_MISSING_PREFIXED_ENVIRONMENT_CONFIG, exception::$ERRORLEVEL_FATAL, $prefixedEnvironmentName);
+    	// throw new exception(self::EXCEPTION_ARCHITECT_MISSING_PREFIXED_ENVIRONMENT_CONFIG, exception::$ERRORLEVEL_FATAL, $prefixedEnvironmentName);
     }
 
     // initialize model adapters
