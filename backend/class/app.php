@@ -86,7 +86,9 @@ class app extends \codename\core\app {
           $modelName = $fileInfo->getBasename('.json');
 
           // split: schema_model
-          $comp = explode( '_' , $modelName);
+          // maximum: two components (schema, model)
+          // following _ are treated as part of the model name itself
+          $comp = explode( '_' , $modelName, 2);
           $schema = $comp[0];
           $model = $comp[1];
 
