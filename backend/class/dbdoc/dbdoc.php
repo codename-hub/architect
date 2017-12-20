@@ -3,6 +3,8 @@ namespace codename\architect\dbdoc;
 use \codename\architect\app;
 use \codename\core\exception;
 
+use codename\core\catchableException;
+
 /**
  * dbdoc
  * @package architect
@@ -261,7 +263,8 @@ class dbdoc  {
         return $adapter;
       }
     }
-    return null;
+
+    throw new catchableException('DBDOC_GETADAPTER_NOTFOUND', exception::$ERRORLEVEL_ERROR, array($schema, $model, $app, $vendor));
   }
 
   /**
