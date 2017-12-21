@@ -12,7 +12,7 @@ abstract class foreign extends \codename\architect\dbdoc\plugin\modelPrefix {
    */
   public function getDefinition()
   {
-    return $this->adapter->config->get('foreign');
+    return $this->adapter->config->get('foreign') ?? array();
   }
 
 }

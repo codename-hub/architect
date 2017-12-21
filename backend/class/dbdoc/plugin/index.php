@@ -18,7 +18,7 @@ abstract class index extends \codename\architect\dbdoc\plugin\modelPrefix {
    */
   public function getDefinition()
   {
-    return $this->adapter->config->get('index');
+    return $this->adapter->config->get('index') ?? array();
   }
 
 }

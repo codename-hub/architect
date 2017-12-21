@@ -12,7 +12,7 @@ abstract class unique extends \codename\architect\dbdoc\plugin\modelPrefix {
    */
   public function getDefinition()
   {
-    return $this->adapter->config->get('unique');
+    return $this->adapter->config->get('unique') ?? array();
   }
 
 }

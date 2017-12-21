@@ -45,27 +45,21 @@ class table extends plugin\table {
     // either run sub-plugins virtually or the 'hard' way
 
     // foreign key plugin
-    if($this->adapter->config->get('foreign') != null) {
-      $plugin = $this->adapter->getPluginInstance('foreign', array(), $this->virtual);
-      if($plugin != null) {
-        $this->adapter->addToQueue($plugin, true);
-      }
+    $plugin = $this->adapter->getPluginInstance('foreign', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
     }
 
-    // if unique key constraints exist
-    if($this->adapter->config->get('unique') != null) {
-      $plugin = $this->adapter->getPluginInstance('unique', array(), $this->virtual);
-      if($plugin != null) {
-        $this->adapter->addToQueue($plugin, true);
-      }
+    // execute plugin for unique constraints
+    $plugin = $this->adapter->getPluginInstance('unique', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
     }
 
-    // if there are index/indices defined
-    if($this->adapter->config->get('index') != null) {
-      $plugin = $this->adapter->getPluginInstance('index', array(), $this->virtual);
-      if($plugin != null) {
-        $this->adapter->addToQueue($plugin, true);
-      }
+    // execute plugin for indices
+    $plugin = $this->adapter->getPluginInstance('index', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
     }
 
     //N fieldlist
