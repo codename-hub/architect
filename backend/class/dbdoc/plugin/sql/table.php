@@ -60,6 +60,14 @@ class table extends plugin\table {
       }
     }
 
+    // if there are index/indices defined
+    if($this->adapter->config->get('index') != null) {
+      $plugin = $this->adapter->getPluginInstance('index', array(), $this->virtual);
+      if($plugin != null) {
+        $this->adapter->addToQueue($plugin, true);
+      }
+    }
+
     //N fieldlist
     $plugin = $this->adapter->getPluginInstance('fieldlist', array(), $this->virtual);
     if($plugin != null) {
