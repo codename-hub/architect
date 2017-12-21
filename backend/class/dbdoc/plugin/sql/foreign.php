@@ -55,7 +55,7 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
         $foreignConfig = $definition[$struc['column_name']];
 
         if($foreignConfig['schema'] != $struc['referenced_table_schema']
-          || $foreignConfig['table'] != $struc['referenced_table_name']
+          || $foreignConfig['model'] != $struc['referenced_table_name']
           || $foreignConfig['key'] != $struc['referenced_column_name']
         ) {
           $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "MODIFY_FOREIGNKEY_CONSTRAINT", array(
@@ -144,11 +144,13 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
       $field = $task->data->get('field');
       $config = $task->data->get('config');
 
+      $constraintName = "fkey_" . md5("{$this->adapter->model}_{$config['model']}_{$field}_fkey");
+
       $db->query(
        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model}
-        ADD CONSTRAINT {$this->adapter->model}_{$config['table']}_{$field}_fkey
+        ADD CONSTRAINT {$constraintName}
         FOREIGN KEY ({$field})
-        REFERENCES {$config['schema']}.{$config['table']} ({$config['key']});"
+        REFERENCES {$config['schema']}.{$config['model']} ({$config['key']});"
       );
     }
 
