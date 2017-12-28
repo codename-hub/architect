@@ -3,6 +3,7 @@ namespace codename\architect\dbdoc;
 use \codename\architect\app;
 use \codename\core\exception;
 
+use codename\core\errorstack;
 use codename\core\catchableException;
 
 /**
@@ -61,6 +62,7 @@ class dbdoc  {
    */
   public function __construct(string $app, string $vendor)
   {
+    $this->errorstack = new errorstack('DBDOC');
     $this->app = $app;
     $this->vendor = $vendor;
     $this->init();
@@ -185,6 +187,12 @@ class dbdoc  {
         // error?
       }
     }
+
+    // display errors on need!
+
+    if(count($errors = $this->errorstack->getErrors()) > 0) {
+      throw new exception('DBDOC_ERRORS', exception::$ERRORLEVEL_FATAL, $errors);
+    }
   }
 
   /**
@@ -196,6 +204,12 @@ class dbdoc  {
   );
 
   /**
+   * [protected description]
+   * @var errorstack
+   */
+  protected $errorstack = null;
+
+  /**
    * [getModelAdapter description]
    * @param  string                                 $schema [description]
    * @param  string                                 $model  [description]
@@ -204,6 +218,12 @@ class dbdoc  {
    * @return \codename\architect\dbdoc\modeladapter         [description]
    */
   protected function getModelAdapter(string $schema, string $model, array $config, \codename\architect\config\environment $env) {
+
+    // validate model configuration
+    if(count($errors = app::getValidator('structure_config_model')->reset()->validate($config)) > 0) {
+      $this->errorstack->addErrors($errors);
+      return null;
+    }
 
     // fallback adapter
     $driver = 'bare';
