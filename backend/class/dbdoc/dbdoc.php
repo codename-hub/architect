@@ -437,7 +437,7 @@ class dbdoc  {
       // echo("<br>{$taskA->name} == {$taskB->name} : " . var_export($taskA->precededBy,true) . var_export($taskB->precededBy,true));
       // echo("<br> -- equal (no precedence).");
 
-      return +1; // was 0
+      return 0; // was 0 // was +1
     });
 
     if(!$sort_success) {
