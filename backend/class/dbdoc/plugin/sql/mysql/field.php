@@ -16,6 +16,12 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
     $definition = parent::getDefinition();
     // TODO: check if this is the correct behaviour
     // the base class sql\field may already set db_data_type, e.g. if it's a primary key
+
+    // field is a virtual field (collection)
+    if($definition['collection']) {
+      return $definition;
+    }
+
     if(!isset($definition['db_data_type'])) {
       $definition['db_data_type'] = $this->adapter->config->get('db_data_type>'.$this->parameter['field']) ?? $this->convertModelDataTypeToDbDataType($this->adapter->config->get('datatype>'.$this->parameter['field']));
     }

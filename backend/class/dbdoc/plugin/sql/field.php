@@ -74,6 +74,11 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
     $tasks = array();
     $definition = $this->getDefinition();
 
+    // cancel, if field is a collection (virtual field)
+    if($definition['collection']) {
+      return $tasks;
+    }
+
     // override with definition from primary plugin
     if($definition['primary']) {
       $plugin = $this->adapter->getPluginInstance('primary', array(), $this->virtual);
@@ -205,7 +210,8 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       'number_natural' => array('integer', 'int', 'bigint'),
       'boolean' => 'boolean',
       'structure' => array('text', 'mediumtext'),
-      'mixed' => array('text')
+      'mixed' => array('text'),
+      // 'collection' => null
   );
 
   /**

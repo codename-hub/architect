@@ -50,6 +50,12 @@ class table extends plugin\table {
       $this->adapter->addToQueue($plugin, true);
     }
 
+    // collection key plugin
+    $plugin = $this->adapter->getPluginInstance('collection', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
+    }
+
     // execute plugin for unique constraints
     $plugin = $this->adapter->getPluginInstance('unique', array(), $this->virtual);
     if($plugin != null) {
