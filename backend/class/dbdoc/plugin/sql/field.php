@@ -193,6 +193,10 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
         $attributes[] = "NOT NULL";
       }
 
+      if(isset($definition['default'])) {
+        $attributes[] = "DEFAULT ".json_encode($definition['default']);
+      }
+
       /*
       // not allowed on normal fields? some requirements have to be met?
       if($definition['auto_increment']) {
@@ -206,7 +210,6 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
       // fallback from specific column types to a more generous type
       $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
-
       $db->query(
         "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} ADD COLUMN {$definition['field']} {$columnType} {$add};"
       );
@@ -217,7 +220,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       // ALTER TABLE tablename MODIFY columnname INTEGER;
       $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
       $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
-      $default = isset($definition['default']) ? 'DEFAULT ' . json_encode($definition['default']) : '';
+      $default = isset($definition['default']) ? 'DEFAULT ' . json_encode($definition['default']).'' : '';
       $db->query(
         "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY COLUMN {$definition['field']} {$columnType} {$nullable} {$default};"
       );
