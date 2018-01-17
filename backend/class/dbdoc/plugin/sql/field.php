@@ -127,13 +127,29 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
         $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_NOTNULL", $definition);
       }
 
-      if(isset($definition['default'])) {
-          echo("default set: " . $definition['default']);
-      }
 
-      if(isset($definition['default']) && $structure['column_default'] != $definition['default']) {
+      if(isset($definition['default'])) {
         // set default column value
-        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+
+        if(is_bool($definition['default'])) {
+          if($definition['default'] != boolval($structure['column_default'])) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        } else if(is_int($definition['default'])) {
+          if($definition['default'] != intval($structure['column_default'])) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        } else if(is_string($definition['default'])) {
+          if($definition['default'] != $structure['column_default']) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        } // TODO: DEFAULT ARRAY VALUE
+        /* else if(is_array($definition['default'])) {
+          if(json_encode($definition['default']) != $structure['column_default']) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        }*/
+
       }
 
 
@@ -197,28 +213,11 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
     }
 
-    if($task->name == "MODIFY_COLUMN_TYPE" || $task->name == "MODIFY_DATA_TYPE") {
-      // ALTER TABLE tablename MODIFY columnname INTEGER;
-      $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
-      $db->query(
-        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType};"
-      );
-    }
-
-    if($task->name == "MODIFY_NOTNULL") {
+    if($task->name == "MODIFY_COLUMN_TYPE" || $task->name == "MODIFY_DATA_TYPE" || $task->name == "MODIFY_NOTNULL" || $task->name == "MODIFY_DEFAULT") {
       // ALTER TABLE tablename MODIFY columnname INTEGER;
       $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
       $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
-      $db->query(
-        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType} {$nullable};"
-      );
-    }
-
-    if($task->name == "MODIFY_DEFAULT") {
-      // ALTER TABLE tablename MODIFY columnname INTEGER;
-      $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
-      $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
-      $default = $definition['default'] ? 'DEFAULT ' . $definition['default'] : '';
+      $default = isset($definition['default']) ? 'DEFAULT ' . json_encode($definition['default']) : '';
       $db->query(
         "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType} {$nullable} {$default};"
       );
