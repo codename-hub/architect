@@ -219,7 +219,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
       $default = isset($definition['default']) ? 'DEFAULT ' . json_encode($definition['default']) : '';
       $db->query(
-        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType} {$nullable} {$default};"
+        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY COLUMN {$definition['field']} {$columnType} {$nullable} {$default};"
       );
     }
 
