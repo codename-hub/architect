@@ -53,7 +53,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
     // get some column specifications
     $db = $this->getSqlAdapter()->db;
     $db->query(
-      "SELECT column_name, column_type, data_type
+      "SELECT column_name, column_type, data_type, is_nullable, column_default
       FROM information_schema.columns
       WHERE table_schema = '{$this->adapter->schema}'
       AND table_name = '{$this->adapter->model}'
@@ -119,6 +119,21 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
           // echo(" -- unequal?");
           $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DATA_TYPE", $definition);
         }
+      }
+
+      // mysql uses a varchar(3) for storing is_nullable (yes / no)
+      if($definition['notnull'] && $structure['is_nullable'] == 'YES') {
+        // make not nullable!
+        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_NOTNULL", $definition);
+      }
+
+      if(isset($definition['default'])) {
+          echo("default set: " . $definition['default']);
+      }
+
+      if(isset($definition['default']) && $structure['column_default'] != $definition['default']) {
+        // set default column value
+        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
       }
 
 
@@ -187,6 +202,25 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
       $db->query(
         "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType};"
+      );
+    }
+
+    if($task->name == "MODIFY_NOTNULL") {
+      // ALTER TABLE tablename MODIFY columnname INTEGER;
+      $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
+      $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
+      $db->query(
+        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType} {$nullable};"
+      );
+    }
+
+    if($task->name == "MODIFY_DEFAULT") {
+      // ALTER TABLE tablename MODIFY columnname INTEGER;
+      $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
+      $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
+      $default = $definition['default'] ? 'DEFAULT ' . $definition['default'] : '';
+      $db->query(
+        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType} {$nullable} {$default};"
       );
     }
 
