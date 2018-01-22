@@ -22,6 +22,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\modelPrefix {
       'primary' => in_array($field, $this->adapter->config->get('primary') ?? array()),
       'foreign' => $this->adapter->config->get('foreign>' . $field),
       'datatype' => $this->adapter->config->get('datatype>' . $field),
+      'options' => $this->adapter->config->get('options>' . $field) ?? []
     );
 
     if($this->adapter->config->exists('default')) {

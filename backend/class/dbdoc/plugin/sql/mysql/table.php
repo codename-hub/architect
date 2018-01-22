@@ -39,7 +39,7 @@ class table extends plugin\sql\table {
       // for mysql, we have to create the table with at least ONE COLUMN
       $db->query(
         "CREATE TABLE {$this->adapter->schema}.{$this->adapter->model} (
-          {$field['field']} {$field['db_column_type']} {$add},
+          {$field['field']} {$field['options']['db_column_type']} {$add},
           PRIMARY KEY({$field['field']})
         );"
       );

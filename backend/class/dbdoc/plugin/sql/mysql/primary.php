@@ -26,8 +26,9 @@ class primary extends \codename\architect\dbdoc\plugin\sql\primary {
   public function getDefinition()
   {
     $definition = parent::getDefinition();
-    $definition['db_data_type'] = $this->adapter->config->get('db_data_type>'.$definition['field']) ?? self::DB_DEFAULT_DATA_TYPE;
-    $definition['db_column_type'] = $this->adapter->config->get('db_column_type>'.$definition['field']) ?? self::DB_DEFAULT_COLUMN_TYPE;
+    $definition['options'] = $this->adapter->config->get('options>'.$definition['field']) ?? [];
+    $definition['options']['db_data_type'] = $definition['options']['db_data_type'] ?? self::DB_DEFAULT_DATA_TYPE;
+    $definition['options']['db_column_type'] = $definition['options']['db_column_type'] ?? self::DB_DEFAULT_COLUMN_TYPE;
     return $definition;
   }
 
