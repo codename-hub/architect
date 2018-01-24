@@ -6,6 +6,8 @@ use codename\core\catchableException;
 
 /**
  * main context
+ * for listing apps
+ * and their models (on demand)
  */
 class main extends \codename\core\context {
 
@@ -17,6 +19,10 @@ class main extends \codename\core\context {
     $this->getResponse()->setData('view', 'listapps');
   }
 
+  /**
+   * [view_listapps description]
+   * @return void
+   */
   public function view_listapps() {
 
     $apps = app::getSiblingApps();
@@ -29,19 +35,18 @@ class main extends \codename\core\context {
     $this->getResponse()->setData('table', $table->outputString());
   }
 
+  /**
+   * Displays a list of available models
+   * for a given vendor and app name
+   * @return void
+   */
   public function view_listmodels() {
     if($this->getRequest()->getData('filter>vendor') != null && $this->getRequest()->getData('filter>app') != null) {
+
       $app = $this->getRequest()->getData('filter>app');
       $vendor = $this->getRequest()->getData('filter>vendor');
 
       $exec_tasks = $this->getRequest()->getData('exec_tasks') ? array_values($this->getRequest()->getData('exec_tasks')) : array(task::TASK_TYPE_REQUIRED); // by default, only execute required tasks
-
-      /*
-      echo("<pre>");
-      print_r($this->getRequest()->getData());
-      print_r($exec_tasks);
-      echo("</pre>");
-      */
 
       $dbdoc = new \codename\architect\dbdoc\dbdoc($app, $vendor);
 
@@ -50,58 +55,13 @@ class main extends \codename\core\context {
         $exec_tasks
       );
 
+      // store dbdoc output
       $this->getResponse()->setData('dbdoc_stats', $stats);
 
-      // TODO: check for validity! Compare to getSiblingApps return value!
-      /*
-      $foreignAppstack = app::makeForeignAppstack($vendor, $app);
-
-      $modelConfigurations = app::getModelConfigurations($vendor, $app, '', $foreignAppstack);
-
-      $modelList = array();
-
-      foreach($modelConfigurations as $schema => $models) {
-        foreach($models as $modelname => $modelConfig) {
-          $modelList[] = array(
-            'identifier' => "{$schema}_{$modelname}",
-            'model' => $modelname,
-            'vendor' => $vendor,
-            'app' => $app,
-            'schema' => $schema,
-            'driver' => 'dummy value',
-            'config' => $modelConfig[0] // ??
-          );
-        }
-      }
-
-      // Load this file by default - plus inheritance
-      // 'config/environment.json'
-      $environment = (new \codename\core\config\json('config/environment.json', true, true, $foreignAppstack))->get();
-
-      // NOTE:
-      // We're using architect_ prefix by default!
-
-      foreach($modelList as $m) {
-        $dbdoc_ma = new \codename\architect\dbdoc\modeladapter\sql\mysql(
-          $m['schema'],
-          $m['model'],
-          new \codename\core\config($m['config']),
-          new \codename\architect\config\environment($environment, 'architect_' . app::getEnv())
-        );
-
-        $tasks = $dbdoc_ma->runDiagnostics();
-
-        if($this->getRequest()->getData('exec') == '1') {
-          foreach($tasks as $t) {
-            echo("executing task ... ");
-            $t->run();
-          }
-        }
-      }
-      */
-
+      // store models dbdoc found
       $this->getResponse()->setData('models', $dbdoc->models);
 
+      // create a table
       $table = new \codename\core\ui\frontend\element\table(array(
         'templateengine' =>  $this->getResponse()->getData('templateengine') ?? 'default',
         'columns' => [ /* 'vendor', 'app', */ 'identifier', 'model',  'schema', 'driver' ]
@@ -118,8 +78,6 @@ class main extends \codename\core\context {
         throw new catchableException("EXCEPTION_ARCHITECT_CONTEXT_MAIN_MISSING_FILTER_APP", catchableException::$ERRORLEVEL_ERROR);
       }
 
-      // echo("something undefined:");
-      // print_r($this->getRequest()->getData());
     }
   }
 

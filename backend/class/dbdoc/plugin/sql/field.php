@@ -17,6 +17,11 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
   public function getDefinition()
   {
     $definition = parent::getDefinition();
+
+    // required fields for SQL database adapters:
+    $definition['options']['db_data_type'] = $definition['options']['db_data_type'] ?? null;
+    $definition['options']['db_column_type'] = $definition['options']['db_column_type'] ?? null;
+
     if($definition['primary']) {
       $plugin = $this->adapter->getPluginInstance('primary', array(), $this->virtual);
       $definition = array_replace($definition, $plugin->getDefinition());
@@ -36,8 +41,9 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
         // equalize datatypes
         // both the referenced column and this one have to be of the same type
-        $definition['db_data_type'] = $foreignDefinition['db_data_type'];
-        $definition['db_column_type'] = $foreignDefinition['db_column_type'];
+        $definition['options']['db_data_type'] = $foreignDefinition['options']['db_data_type'];
+        $definition['options']['db_column_type'] = $foreignDefinition['options']['db_column_type'];
+        // TODO: NEW OPTIONS FORMAT/SETTING?
 
         // TODO: we may warn, if there's a configurational difference!
       }
@@ -53,7 +59,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
     // get some column specifications
     $db = $this->getSqlAdapter()->db;
     $db->query(
-      "SELECT column_name, column_type, data_type
+      "SELECT column_name, column_type, data_type, is_nullable, column_default
       FROM information_schema.columns
       WHERE table_schema = '{$this->adapter->schema}'
       AND table_name = '{$this->adapter->model}'
@@ -76,6 +82,11 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
     // cancel, if field is a collection (virtual field)
     if($definition['collection']) {
+      return $tasks;
+    }
+
+    // cancel, if field is a virtual field
+    if($definition['datatype'] == 'virtual') {
       return $tasks;
     }
 
@@ -108,7 +119,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
       $checkDataType = true;
 
-      if($definition['db_column_type'] != null && $definition['db_column_type'] != $structure['column_type']) {
+      if($definition['options']['db_column_type'] != null && $definition['options']['db_column_type'] != $structure['column_type']) {
         // different column type!
         // echo(" -- unequal?");
         $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_COLUMN_TYPE", $definition);
@@ -119,11 +130,42 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
       if($checkDataType) {
         // echo("<br>{$definition['db_data_type']} <=> {$structure['data_type']}");
-        if($definition['db_data_type'] != null && $definition['db_data_type'] != $structure['data_type']) {
+        if($definition['options']['db_data_type'] != null && $definition['options']['db_data_type'] != $structure['data_type']) {
           // different data type!
           // echo(" -- unequal?");
           $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DATA_TYPE", $definition);
         }
+      }
+
+      // mysql uses a varchar(3) for storing is_nullable (yes / no)
+      if($definition['notnull'] && $structure['is_nullable'] == 'YES') {
+        // make not nullable!
+        $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_NOTNULL", $definition);
+      }
+
+
+      if(isset($definition['default'])) {
+        // set default column value
+
+        if(is_bool($definition['default'])) {
+          if($definition['default'] != boolval($structure['column_default'])) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        } else if(is_int($definition['default'])) {
+          if($definition['default'] != intval($structure['column_default'])) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        } else if(is_string($definition['default'])) {
+          if($definition['default'] != $structure['column_default']) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        } // TODO: DEFAULT ARRAY VALUE
+        /* else if(is_array($definition['default'])) {
+          if(json_encode($definition['default']) != $structure['column_default']) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
+          }
+        }*/
+
       }
 
 
@@ -167,6 +209,10 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
         $attributes[] = "NOT NULL";
       }
 
+      if(isset($definition['default'])) {
+        $attributes[] = "DEFAULT ".json_encode($definition['default']);
+      }
+
       /*
       // not allowed on normal fields? some requirements have to be met?
       if($definition['auto_increment']) {
@@ -179,19 +225,20 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $add = implode(' ', $attributes);
 
       // fallback from specific column types to a more generous type
-      $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
-
+      $columnType = $definition['options']['db_column_type'] ?? $definition['options']['db_data_type'];
       $db->query(
         "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} ADD COLUMN {$definition['field']} {$columnType} {$add};"
       );
 
     }
 
-    if($task->name == "MODIFY_COLUMN_TYPE" || $task->name == "MODIFY_DATA_TYPE") {
+    if($task->name == "MODIFY_COLUMN_TYPE" || $task->name == "MODIFY_DATA_TYPE" || $task->name == "MODIFY_NOTNULL" || $task->name == "MODIFY_DEFAULT") {
       // ALTER TABLE tablename MODIFY columnname INTEGER;
-      $columnType = $definition['db_column_type'] ?? $definition['db_data_type'];
+      $columnType = $definition['options']['db_column_type'] ?? $definition['options']['db_data_type'];
+      $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
+      $default = isset($definition['default']) ? 'DEFAULT ' . json_encode($definition['default']).'' : '';
       $db->query(
-        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY {$definition['field']} {$columnType};"
+        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY COLUMN {$definition['field']} {$columnType} {$nullable} {$default};"
       );
     }
 
@@ -200,18 +247,19 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
   /**
    * basic conversion table between sql defaults and core framework
-   * @var [type]
+   * @var string[]
    */
   protected $conversionTable = array(
-      'text' => array('text', 'mediumtext'),
-      'text_timestamp' => 'datetime',
-      'text_date' => 'date',
-      'number' => 'numeric', // was integer
-      'number_natural' => array('integer', 'int', 'bigint'),
-      'boolean' => 'boolean',
-      'structure' => array('text', 'mediumtext'),
-      'mixed' => array('text'),
-      // 'collection' => null
+      'text'            => [ 'text', 'mediumtext' ],
+      'text_timestamp'  => [ 'datetime' ],
+      'text_date'       => [ 'date' ],
+      'number'          => [ 'numeric' ], // was integer
+      'number_natural'  => [ 'integer', 'int', 'bigint' ],
+      'boolean'         => [ 'boolean' ],
+      'structure'       => [ 'text', 'mediumtext' ],
+      'mixed'           => [ 'text' ],
+      // 'virtual'         => [ null ]
+      // 'collection'
   );
 
   /**
@@ -224,37 +272,45 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
   }
 
   /**
+   * gets all conversion options for converting
+   * model datatype => db datatype
+   * @param  string $key [datatype / validator]
+   * @return string[]      [description]
+   */
+  protected function getDatatypeConversionOptions(string $key) {
+    $conversionTable = $this->getDatatypeConversionTable();
+    if(array_key_exists($key,$conversionTable)) {
+			// use defined type
+			$res = $conversionTable[$key];
+      return $res;
+    } else {
+      $keyComponents = explode('_', $key);
+
+      // TODO: add top-down search
+      // recursively re-combine $t's elements and reduce each loop by 1
+
+			if(array_key_exists($keyComponents[0], $conversionTable)) {
+				// we have a defined underlying db field type
+        $res = $conversionTable[$keyComponents[0]];
+				return $res;
+			} else {
+				// throw some error, as it is not in our type definition library
+        throw new catchableException('EXCEPTION_DBDOC_MODEL_DATATYPE_NOT_IN_DEFINITION_LIBRARY', catchableException::$ERRORLEVEL_ERROR, array($key, $keyComponents[0]));
+      }
+    }
+  }
+
+  /**
    * [convertModelDataTypeToDbDataType description]
    * @param  [type] $t [description]
    * @return string    [db data type from conversion table]
    */
   public function convertModelDataTypeToDbDataType($t) {
-
     if($t == null) {
       throw new exception("EXCEPTION_DBDOC_PLUGIN_SQL_FIELD_MODEL_DATATYPE_NULL", exception::$ERRORLEVEL_ERROR, $this->parameter);
     }
-
-		// check for existing overrides/matching types
-    $conversionTable = $this->getDatatypeConversionTable();
-		if(array_key_exists($t,$conversionTable)) {
-			// use defined type
-			$res = $conversionTable[$t];
-      return is_array($res) ? $res[0] : $res;
-		} else {
-			$tArr = explode('_', $t);
-
-      // TODO: add top-down search
-      // recursively re-combine $t's elements and reduce each loop by 1
-
-			if(array_key_exists($tArr[0], $conversionTable)) {
-				// we have a defined underlying db field type
-        $res = $conversionTable[$tArr[0]];
-				return is_array($res) ? $res[0] : $res;
-			} else {
-				// throw some error, as it is not in our type definition library
-        throw new catchableException('EXCEPTION_DBDOC_MODEL_DATATYPE_NOT_IN_DEFINITION_LIBRARY', catchableException::$ERRORLEVEL_ERROR, array($t, $tArr[0]));
-      }
-		}
+    $conversionOptions = $this->getDatatypeConversionOptions($t);
+		return $this->getDatatypeConversionOptions($t)[0]; // first matching result
 	}
 
 
@@ -291,5 +347,69 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
         return null;
       }
 		}
+  }
+
+  /**
+   * converts a field configuration
+   * @return [type] [description]
+   */
+  public function convertFieldConfigurationToDbColumnType(array $config = []) {
+    /**
+     * check:
+     * - datatype
+     * - options
+     *    + db_datatype ?
+     *    + (db_column_type) ?
+     *    + length
+     */
+
+    $datatype     = $config['datatype'];
+    $dbDataType   = $config['options']['db_data_type']   ?? null;
+    $dbColumnType = $config['options']['db_column_type'] ?? null;
+    $length       = $config['options']['length']         ?? null;
+    $precision    = $config['options']['precision']      ?? null;
+
+    // explicit db_column_type not specified
+    if($dbDataType == null) {
+      $dbDataType = $this->convertModelDataTypeToDbDataType($config['datatype']);
+    }
+
+    if($dbColumnType == null) {
+
+      switch ($dbDataType) {
+        case 'text':
+          if($length) {
+            $dbColumnType = "varchar({$length})";
+          }
+          break;
+
+        case 'numeric':
+          if($length && $precision) {
+            $dbColumnType = "numeric({$length},{$precision})";
+          } else if($length)  {
+            $dbColumnType = "numeric({$length})";
+          }
+          break;
+
+        case 'integer':
+          if($length) {
+            $dbColumnType = "int({$length})";
+          }
+          break;
+
+        default:
+          # code...
+          break;
+      }
+    }
+
+    if($dbColumnType == null) {
+      $dbColumnType = $this->convertDbDataTypeToDbColumnTypeDefault($dbDataType);
+    }
+
+    return [
+      'db_column_type' => $dbColumnType,
+      'db_data_type' => $dbDataType
+    ];
   }
 }
