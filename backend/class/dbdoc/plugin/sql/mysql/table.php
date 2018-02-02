@@ -41,7 +41,7 @@ class table extends plugin\sql\table {
         "CREATE TABLE {$this->adapter->schema}.{$this->adapter->model} (
           {$field['field']} {$field['options']['db_column_type']} {$add},
           PRIMARY KEY({$field['field']})
-        );"
+        ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE utf8_general_ci;"
       );
 
     }
