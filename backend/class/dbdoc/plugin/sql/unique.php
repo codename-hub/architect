@@ -126,9 +126,11 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
       $constraintColumns = $task->data->get('constraint_columns');
       $columns = is_array($constraintColumns) ? implode(',', $constraintColumns) : $constraintColumns;
 
+      $constraintName = "unique_" . md5("{$this->adapter->schema}_{$this->adapter->model}_{$columns}");
+
       $db->query(
-       "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model}
-       ADD UNIQUE ({$columns});"
+       "CREATE UNIQUE INDEX {$constraintName}
+         ON {$this->adapter->schema}.{$this->adapter->model} ({$columns});"
       );
     }
   }
