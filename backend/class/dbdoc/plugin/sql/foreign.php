@@ -146,11 +146,19 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
 
       $constraintName = "fkey_" . md5("{$this->adapter->model}_{$config['model']}_{$field}_fkey");
 
+      if(is_array($config['key'])) {
+        $fkey = implode(',', array_keys($config['key']));
+        $references = implode(',', array_values($config['key']));
+      } else {
+        $fkey = $field;
+        $references = $config['key'];
+      }
+
       $db->query(
        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model}
         ADD CONSTRAINT {$constraintName}
-        FOREIGN KEY ({$field})
-        REFERENCES {$config['schema']}.{$config['model']} ({$config['key']});"
+        FOREIGN KEY ({$fkey})
+        REFERENCES {$config['schema']}.{$config['model']} ({$references});"
       );
     }
 
