@@ -88,7 +88,7 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
         continue;
       }
 
-      $foreignFields = is_array($def['key']) ? array_values($def['key']) : $def['key'];
+      $foreignFields = is_array($def['key']) ? array_values($def['key']) : [$def['key']];
       $nullPluginDetected = false;
       foreach($foreignFields as $key) {
         $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $key));
