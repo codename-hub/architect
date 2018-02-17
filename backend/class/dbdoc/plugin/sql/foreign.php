@@ -83,14 +83,27 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
       // let the task be preceded by tasks related to the existance of the foreign field
       $foreignAdapter = $this->adapter->dbdoc->getAdapter($def['schema'], $def['model'], $def['app'] ?? '', $def['vendor'] ?? '');
 
-      $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $def['key']));
-      if($plugin != null) {
-        $precededBy[] = $plugin->getTaskIdentifierPrefix();
-      } else {
-        // cancel here, as we might reference a model that can't be constructed
-        // in this case, the field plugin is null
+      // omit multi-component foreignkeys
+      if(isset($def['optional']) && $def['optional']) {
         continue;
       }
+
+      $foreignFields = is_array($def['key']) ? array_values($def['key']) : $def['key'];
+      $nullPluginDetected = false;
+      foreach($foreignFields as $key) {
+        $plugin = $foreignAdapter->getPluginInstance('field', array('field' => $key));
+        if($plugin != null) {
+          $precededBy[] = $plugin->getTaskIdentifierPrefix();
+        } else {
+          // cancel here, as we might reference a model that can't be constructed
+          // in this case, the field plugin is null
+          $nullPluginDetected = true;
+        }
+      }
+      if($nullPluginDetected) {
+        continue;
+      }
+
 
       // the foreign table
       $plugin = $foreignAdapter->getPluginInstance('table');

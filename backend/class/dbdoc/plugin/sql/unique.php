@@ -132,6 +132,12 @@ class unique extends \codename\architect\dbdoc\plugin\unique {
        "CREATE UNIQUE INDEX {$constraintName}
          ON {$this->adapter->schema}.{$this->adapter->model} ({$columns});"
       );
+    } else if($task->name == "REMOVE_UNIQUE_CONSTRAINT") {
+      $constraintName = $task->data->get('constraint_name');
+
+      $db->query(
+       "DROP INDEX {$constraintName} ON {$this->adapter->schema}.{$this->adapter->model};"
+      );
     }
   }
 
