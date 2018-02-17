@@ -36,8 +36,9 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
 
     // $definition['options']['db_column_type'] = $this->convertFieldConfigurationToDbColumnType($definition);
 
-    $definition['options'] =  array_replace($definition['options'], $this->convertFieldConfigurationToDbColumnType($definition));
-
+    if(!is_array($definition['field'])) {
+      $definition['options'] =  array_replace($definition['options'], $this->convertFieldConfigurationToDbColumnType($definition));
+    }
     return $definition;
   }
 

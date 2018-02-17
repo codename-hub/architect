@@ -12,7 +12,6 @@ abstract class field extends \codename\architect\dbdoc\plugin\modelPrefix {
    */
   public function getDefinition()
   {
-
     $field = $this->parameter['field'];
     $def = array(
       'field' => $field,
@@ -20,11 +19,11 @@ abstract class field extends \codename\architect\dbdoc\plugin\modelPrefix {
       // 'default' => $this->adapter->config->get('default>' . $field),
       // NOTE: 'primary' => true/false -- should be handled in an extra plugin for EACH TABLE ! this is just to overcome some too field-specific stuff
       'primary' => in_array($field, $this->adapter->config->get('primary') ?? array()),
-      'foreign' => $this->adapter->config->get('foreign>' . $field),
-      'datatype' => $this->adapter->config->get('datatype>' . $field),
-      'collection' => $this->adapter->config->get('collection>' . $field),
-      'children' => $this->adapter->config->get('children>' . $field),
-      'options' => $this->adapter->config->get('options>' . $field) ?? []
+      'foreign' => is_array($field) ? null : $this->adapter->config->get('foreign>' . $field),
+      'datatype' => is_array($field) ? null : $this->adapter->config->get('datatype>' . $field),
+      'collection' => is_array($field) ? null : $this->adapter->config->get('collection>' . $field),
+      'children' => is_array($field) ? null : $this->adapter->config->get('children>' . $field),
+      'options' => is_array($field) ? null : $this->adapter->config->get('options>' . $field) ?? []
     );
 
     if($this->adapter->config->exists('default')) {

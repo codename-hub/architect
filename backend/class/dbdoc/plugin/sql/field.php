@@ -253,7 +253,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       'text'            => [ 'text', 'mediumtext' ],
       'text_timestamp'  => [ 'datetime' ],
       'text_date'       => [ 'date' ],
-      'number'          => [ 'numeric' ], // was integer
+      'number'          => [ 'decimal' ], // was integer
       'number_natural'  => [ 'integer', 'int', 'bigint' ],
       'boolean'         => [ 'boolean' ],
       'structure'       => [ 'text', 'mediumtext' ],
