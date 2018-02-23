@@ -119,9 +119,14 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
       $checkDataType = true;
 
-      if($definition['options']['db_column_type'] != null && $definition['options']['db_column_type'] != $structure['column_type']) {
+      if($definition['options']['db_column_type'] != null && !in_array($structure['column_type'], $definition['options']['db_column_type'])/* $definition['options']['db_column_type'] != $structure['column_type'] */) {
+        // check for array-based definition
         // different column type!
         // echo(" -- unequal?");
+        /* echo("<pre>");
+        print_r($structure);
+        print_r($definition);
+        echo("</pre>"); */
         $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_COLUMN_TYPE", $definition);
 
       } else {
@@ -225,7 +230,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $add = implode(' ', $attributes);
 
       // fallback from specific column types to a more generous type
-      $columnType = $definition['options']['db_column_type'] ?? $definition['options']['db_data_type'];
+      $columnType = $definition['options']['db_column_type'][0] ?? $definition['options']['db_data_type'][0];
       $db->query(
         "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} ADD COLUMN {$definition['field']} {$columnType} {$add};"
       );
@@ -234,7 +239,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
     if($task->name == "MODIFY_COLUMN_TYPE" || $task->name == "MODIFY_DATA_TYPE" || $task->name == "MODIFY_NOTNULL" || $task->name == "MODIFY_DEFAULT") {
       // ALTER TABLE tablename MODIFY columnname INTEGER;
-      $columnType = $definition['options']['db_column_type'] ?? $definition['options']['db_data_type'];
+      $columnType = $definition['options']['db_column_type'][0] ?? $definition['options']['db_data_type'][0];
       $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
       $default = isset($definition['default']) ? 'DEFAULT ' . json_encode($definition['default']).'' : '';
       $db->query(
@@ -253,7 +258,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       'text'            => [ 'text', 'mediumtext' ],
       'text_timestamp'  => [ 'datetime' ],
       'text_date'       => [ 'date' ],
-      'number'          => [ 'decimal' ], // was integer
+      'number'          => [ 'numeric', 'decimal' ], // was integer
       'number_natural'  => [ 'integer', 'int', 'bigint' ],
       'boolean'         => [ 'boolean' ],
       'structure'       => [ 'text', 'mediumtext' ],
@@ -310,7 +315,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       throw new exception("EXCEPTION_DBDOC_PLUGIN_SQL_FIELD_MODEL_DATATYPE_NULL", exception::$ERRORLEVEL_ERROR, $this->parameter);
     }
     $conversionOptions = $this->getDatatypeConversionOptions($t);
-		return $this->getDatatypeConversionOptions($t)[0]; // first matching result
+		return $this->getDatatypeConversionOptions($t); // all results
 	}
 
 
@@ -333,20 +338,28 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
     // check for existing overrides/matching types
     $conversionTable = $this->getDbDataTypeDefaultsTable();
-		if(array_key_exists($t,$conversionTable)) {
-			// use defined type
-			return $conversionTable[$t];
-		} else {
-			$tArr = explode('_', $t);
-			if(array_key_exists($tArr[0], $conversionTable)) {
-				// we have a defined underlying db field type
-				return $conversionTable[$tArr[0]];
-			} else {
-				// throw some error, as it is not in our type definition library
-        // throw new \codename\core\exception('EXCEPTION_DBDOC_MODEL_COLUMN_TYPE_NOT_IN_DEFINITION_LIBRARY', catchableException::$ERRORLEVEL_ERROR, array($t, $tArr[0]));
-        return null;
-      }
-		}
+
+    // make $t an array, if it's not
+    $checkTypes = !is_array($t) ? [$t] : $t;
+
+    $res = [];
+    foreach($checkTypes as $checkType) {
+  		if(array_key_exists($checkType,$conversionTable)) {
+  			// use defined type
+  			$res[] = $conversionTable[$checkType];
+  		} else {
+  			$tArr = explode('_', $checkType);
+  			if(array_key_exists($tArr[0], $conversionTable)) {
+  				// we have a defined underlying db field type
+  				$res[] = $conversionTable[$tArr[0]];
+  			} else {
+  				// throw some error, as it is not in our type definition library
+          // throw new \codename\core\exception('EXCEPTION_DBDOC_MODEL_COLUMN_TYPE_NOT_IN_DEFINITION_LIBRARY', catchableException::$ERRORLEVEL_ERROR, array($t, $tArr[0]));
+          // return null;
+        }
+  		}
+    }
+    return $res;
   }
 
   /**
@@ -371,45 +384,64 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
     // explicit db_column_type not specified
     if($dbDataType == null) {
-      $dbDataType = $this->convertModelDataTypeToDbDataType($config['datatype']);
+      $tDbDataType = $this->convertModelDataTypeToDbDataType($config['datatype']);
+      // $dbDataType = count($tDbDataType) > 0 ? $tDbDataType[0] : null;
+      $dbDataType = $tDbDataType;
     }
 
     if($dbColumnType == null) {
 
-      switch ($dbDataType) {
-        case 'text':
-          if($length) {
-            $dbColumnType = "varchar({$length})";
-          }
-          break;
+      $columnTypes = [];
+      foreach($dbDataType as $type) {
+        switch ($type) {
 
-        case 'numeric':
-          if($length && $precision) {
-            $dbColumnType = "numeric({$length},{$precision})";
-          } else if($length)  {
-            $dbColumnType = "numeric({$length})";
-          }
-          break;
+          case 'text':
+            if($length) {
+              $columnTypes[] = "varchar({$length})";
+            }
+            break;
 
-        case 'integer':
-          if($length) {
-            $dbColumnType = "int({$length})";
-          }
-          break;
+          case 'numeric':
+            if($length && $precision) {
+              $columnTypes[] = "numeric({$length},{$precision})";
+            } else if($length)  {
+              $columnTypes[] = "numeric({$length})";
+            }
+            break;
 
-        default:
-          # code...
-          break;
+          case 'decimal':
+            if($length && $precision) {
+              $columnTypes[] = "decimal({$length},{$precision})";
+            } else if($length)  {
+              $columnTypes[] = "decimal({$length})";
+            }
+            break;
+
+          case 'integer':
+          case 'int':
+            if($length) {
+              $columnTypes[] = "int({$length})";
+            }
+            break;
+
+          default:
+            # code...
+            break;
+        }
       }
+
+      $dbColumnType = count($columnTypes) > 0 ? $columnTypes : null;
     }
 
     if($dbColumnType == null) {
+      // $defaults = $this->convertDbDataTypeToDbColumnTypeDefault($dbDataType);
+      // $dbColumnType = count($defaults) > 0 ? $defaults[0] : null; // Should we fallback to the first entry?
       $dbColumnType = $this->convertDbDataTypeToDbColumnTypeDefault($dbDataType);
     }
 
     return [
-      'db_column_type' => $dbColumnType,
-      'db_data_type' => $dbDataType
+      'db_column_type' => !is_array($dbColumnType) ? [$dbColumnType] : $dbColumnType,
+      'db_data_type' => !is_array($dbDataType) ? [$dbDataType] : $dbDataType
     ];
   }
 }
