@@ -405,7 +405,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
             if($length && $precision) {
               $columnTypes[] = "numeric({$length},{$precision})";
             } else if($length)  {
-              $columnTypes[] = "numeric({$length})";
+              $columnTypes[] = "numeric({$length},0)";
             }
             break;
 
@@ -413,7 +413,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
             if($length && $precision) {
               $columnTypes[] = "decimal({$length},{$precision})";
             } else if($length)  {
-              $columnTypes[] = "decimal({$length})";
+              $columnTypes[] = "decimal({$length},0)";
             }
             break;
 
