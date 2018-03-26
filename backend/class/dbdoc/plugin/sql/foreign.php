@@ -173,10 +173,28 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
         FOREIGN KEY ({$fkey})
         REFERENCES {$config['schema']}.{$config['model']} ({$references});"
       );
+      return;
     }
 
     // TODO: Remove / modify foreign key
     // may be abstracted to two tasks, first: delete/drop, then (re)create
+    //
+
+    // NOTE: this is not valid for MySQL
+    // see: https://stackoverflow.com/questions/14122031/how-to-remove-constraints-from-my-mysql-table/14122155
+    if($task->name == "REMOVE_FOREIGNKEY_CONSTRAINT") {
+
+      $field = $task->data->get('field');
+      $config = $task->data->get('config');
+
+      $constraintName = $task->data->get('constraint_name');
+
+      $db->query(
+       "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model}
+        DROP CONSTRAINT {$constraintName};"
+      );
+      return;
+    }
   }
 
 }
