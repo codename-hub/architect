@@ -13,6 +13,23 @@ class foreign extends \codename\architect\dbdoc\plugin\foreign {
   /**
    * @inheritDoc
    */
+  public function getDefinition()
+  {
+    $def = parent::getDefinition();
+    $res = [];
+    foreach($def as $field => $config) {
+      // omit pure structure fields
+      if($this->adapter->config->get('datatype>'.$field) == 'structure') {
+        // omit.
+      } else {
+        $res[$field] = $config;
+      }
+    }
+    return $res;
+  }
+  /**
+   * @inheritDoc
+   */
   public function getStructure()
   {
     $db = $this->getSqlAdapter()->db;

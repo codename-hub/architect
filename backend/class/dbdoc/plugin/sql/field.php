@@ -26,7 +26,11 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $plugin = $this->adapter->getPluginInstance('primary', array(), $this->virtual);
       $definition = array_replace($definition, $plugin->getDefinition());
     }
-    if($definition['foreign']) {
+
+    //
+    // NOTE: we can only sync column datatypes if it's not a structure (e.g. array)
+    //
+    if($definition['foreign'] && $definition['datatype'] != 'structure') {
       // we have to get field information from a different model (!)
       // , $def['app'] ?? '', $def['vendor'] ?? ''
       $foreignAdapter = $this->adapter->dbdoc->getAdapter(
@@ -128,14 +132,13 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
         print_r($definition);
         echo("</pre>"); */
         $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_COLUMN_TYPE", $definition);
-
       } else {
         $checkDataType = false;
       }
 
       if($checkDataType) {
         // echo("<br>{$definition['db_data_type']} <=> {$structure['data_type']}");
-        if($definition['options']['db_data_type'] != null && $definition['options']['db_data_type'] != $structure['data_type']) {
+        if($definition['options']['db_data_type'] != null && !in_array($structure['data_type'], $definition['options']['db_data_type'])) {
           // different data type!
           // echo(" -- unequal?");
           $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DATA_TYPE", $definition);

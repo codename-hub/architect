@@ -48,7 +48,8 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
    */
   protected $defaultsConversionTable = array(
     'bigint' => 'bigint(20)',
-    'integer' => 'int(11)'
+    'integer' => 'int(11)',
+    'text'    => 'text'
   );
 
   /**
