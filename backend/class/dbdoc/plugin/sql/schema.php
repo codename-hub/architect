@@ -60,7 +60,7 @@ class schema extends plugin\schema {
 
     if($task->name == 'CREATE_SCHEMA') {
       // CREATE SCHEMA
-      $db->query("CREATE SCHEMA {$this->adapter->schema};");
+      $db->query("CREATE SCHEMA `{$this->adapter->schema}`;");
     }
 
   }
