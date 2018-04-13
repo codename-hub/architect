@@ -244,7 +244,21 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       // ALTER TABLE tablename MODIFY columnname INTEGER;
       $columnType = $definition['options']['db_column_type'][0] ?? $definition['options']['db_data_type'][0];
       $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
-      $default = isset($definition['default']) ? 'DEFAULT ' . json_encode($definition['default']).'' : '';
+
+      $defaultValue = json_encode($definition['default']);
+
+      //
+      // we should update the existing dataset
+      // if it's NOT nullable
+      //
+      if($definition['notnull'] && $definition['default'] != null) {
+        $db->query(
+          "UPDATE {$this->adapter->schema}.{$this->adapter->model} SET {$definition['field']} = {$defaultValue} WHERE {$definition['field']} IS NULL;"
+        );
+      }
+
+      $default = isset($definition['default']) ? 'DEFAULT ' . $defaultValue.'' : '';
+
       $db->query(
         "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} MODIFY COLUMN {$definition['field']} {$columnType} {$nullable} {$default};"
       );
