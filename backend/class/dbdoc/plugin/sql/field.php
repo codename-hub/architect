@@ -245,7 +245,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $columnType = $definition['options']['db_column_type'][0] ?? $definition['options']['db_data_type'][0];
       $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
 
-      $defaultValue = json_encode($definition['default']);
+      $defaultValue = json_encode($definition['default'] ?? null);
 
       //
       // we should update the existing dataset
