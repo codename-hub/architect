@@ -148,7 +148,7 @@ class dbdoc  {
     $this->environment = new \codename\core\config\json('config/environment.json', true, true, $foreignAppstack);;
 
     // construct the prefixed environment config (used for deployment)
-    $prefixedEnvironmentName = self::ARCHITECT_ENV_PREFIX . app::getEnv();
+    $prefixedEnvironmentName = $this->getPrefixedEnvironmentName();
 
     // check for existance
     if(!$this->environment->exists($prefixedEnvironmentName)) {
@@ -193,6 +193,14 @@ class dbdoc  {
     if(count($errors = $this->errorstack->getErrors()) > 0) {
       throw new exception('DBDOC_ERRORS', exception::$ERRORLEVEL_FATAL, $errors);
     }
+  }
+
+  /**
+   * [getPrefixedEnvironmentName description]
+   * @return string [description]
+   */
+  protected function getPrefixedEnvironmentName() : string {
+    return self::ARCHITECT_ENV_PREFIX . app::getEnv();
   }
 
   /**
@@ -256,6 +264,7 @@ class dbdoc  {
     return null;
   }
 
+
   /**
    * Exception thrown if we're missing a specific env config key (with the deployment-mode prefix)
    * @var string
@@ -266,6 +275,8 @@ class dbdoc  {
    * [getAdapter description]
    * @param  string                                 $schema [description]
    * @param  string                                 $model  [description]
+   * @param  string                                 $app    [description]
+   * @param  string                                 $vendor [description]
    * @return \codename\architect\dbdoc\modeladapter         [description]
    */
   public function getAdapter(string $schema, string $model, string $app = '', string $vendor = '') {
