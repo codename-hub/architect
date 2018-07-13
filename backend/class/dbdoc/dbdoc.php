@@ -191,6 +191,8 @@ class dbdoc  {
     // display errors on need!
 
     if(count($errors = $this->errorstack->getErrors()) > 0) {
+      // print_r($errors);
+      // die();
       throw new exception('DBDOC_ERRORS', exception::$ERRORLEVEL_FATAL, $errors);
     }
   }
