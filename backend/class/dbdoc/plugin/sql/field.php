@@ -52,6 +52,15 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
         // TODO: we may warn, if there's a configurational difference!
       }
     }
+
+    //
+    // Handle automatic fallback to current_timestamp() for _created fields in models
+    // except we override it in the model
+    //
+    if(!isset($definition['default']) && $definition['field'] == $this->adapter->model.'_created') {
+      $definition['default'] = 'current_timestamp()';
+    }
+
     return $definition;
   }
 
@@ -165,6 +174,7 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
           }
         } else if(is_string($definition['default'])) {
           if($definition['default'] != $structure['column_default']) {
+            $definition['debug'] = $structure;
             $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "MODIFY_DEFAULT", $definition);
           }
         } // TODO: DEFAULT ARRAY VALUE
@@ -218,7 +228,14 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       }
 
       if(isset($definition['default'])) {
-        $attributes[] = "DEFAULT ".json_encode($definition['default']);
+        //
+        // Special case: field is timestamp && default is CURRENT_TIMESTAMP
+        //
+        if($definition['datatype'] === 'text_timestamp' && $definition['default'] == 'current_timestamp()') {
+          $attributes[] = "DEFAULT ".$definition['default'];
+        } else {
+          $attributes[] = "DEFAULT ".json_encode($definition['default']);
+        }
       }
 
       /*
@@ -245,7 +262,11 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       $columnType = $definition['options']['db_column_type'][0] ?? $definition['options']['db_data_type'][0];
       $nullable = $definition['notnull'] ? 'NOT NULL' : 'NULL';
 
-      $defaultValue = json_encode($definition['default'] ?? null);
+      if(array_key_exists('default', $definition) && $definition['datatype'] === 'text_timestamp' && $definition['default'] == 'current_timestamp()') {
+        $defaultValue = $definition['default'] ?? null;
+      } else {
+        $defaultValue = json_encode($definition['default'] ?? null);
+      }
 
       //
       // we should update the existing dataset
