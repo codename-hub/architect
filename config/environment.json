@@ -1,5 +1,31 @@
 {
   "production" : {
+    "templateengine" : {
+      "default" : {
+        "__comment" : "twig config used for default output",
+        "driver" : "twig"
+      },
+      "cli" : {
+        "__comment" : "twig config used for cli-only output. forced in app class.",
+        "driver" : "twig",
+        "template_file_extension" : ".cli.twig"
+      }
+    },
+    "filesystem": {
+			"local": {
+				"driver": "local"
+			}
+		},
+    "cache" : {
+      "default" : {
+        "driver" : "devnull"
+      }
+    },
+    "session" : {
+			"default" : {
+				"driver" : "dummy"
+			}
+		},
     "log" : {
       "errormessage": {
 				"driver": "file",
