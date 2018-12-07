@@ -30,8 +30,8 @@ abstract class user extends \codename\architect\dbdoc\plugin\connectionPrefix {
     // get database name
     $config = $environment->get('database>'.$connection);
 
-    // username defined in config
-    $user = $config['user'];
+    // username defined in config or as an ENV-key
+    $user = isset($config['env_user']) ? getenv($config['env_user']) : $config['user'];
 
     // password defined as text or as ENV-key
     // should throw an exception if neither is defined
