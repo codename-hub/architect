@@ -30,6 +30,15 @@ abstract class task {
   {
     $this->deploymentInstance = $deploymentInstance;
     $this->config = $config;
+    $this->handleConfig();
+  }
+
+  /**
+   * [handleConfig description]
+   * @return [type] [description]
+   */
+  protected function handleConfig() {
+    // Do stuff with me. Override me.
   }
 
   /**

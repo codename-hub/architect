@@ -70,6 +70,58 @@ class deployment {
   }
 
   /**
+   * [protected description]
+   * @var [type]
+   */
+  protected $foreignAppstack = null;
+
+  /**
+   * get app's appstack
+   * @return array
+   */
+  public function getAppstack() : array {
+    if(!$this->foreignAppstack) {
+      $this->foreignAppstack = app::makeForeignAppstack($this->getVendor(), $this->getApp());
+    }
+    return $this->foreignAppstack;
+  }
+
+  /**
+   * environment config of foreign app
+   * @var \codename\core\config
+   */
+  protected $environment = null;
+
+  /**
+   * [getEnvironment description]
+   * @return \codename\core\config [description]
+   */
+  public function getEnvironment() : \codename\core\config {
+    if(!$this->environment) {
+      // TODO/CHECK: should we really inherit? Yes, we should.
+      $this->environment = new \codename\core\config\json('config/environment.json', true, true, $this->getAppstack());
+    }
+    return $this->environment;
+  }
+
+  /**
+   * virtualized environment config of foreign app
+   * @var \codename\architect\config\environment
+   */
+  protected $virtualEnvironment = null;
+
+  /**
+   * [getVirtualEnvironment description]
+   * @return \codename\architect\config\environment [description]
+   */
+  public function getVirtualEnvironment() : \codename\architect\config\environment {
+    if(!$this->virtualEnvironment) {
+      $this->virtualEnvironment = new \codename\architect\config\environment($this->getEnvironment()->get(), \codename\core\app::getEnv());
+    }
+    return $this->virtualEnvironment;
+  }
+
+  /**
   * task instances
   * @var task[]
   */
