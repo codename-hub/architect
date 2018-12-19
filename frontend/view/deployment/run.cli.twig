@@ -1,0 +1,8 @@
+DeploymentResult
+----------------------------------
+
+{% for taskName, taskResult in response.getData('deploymentresult').getTaskResults() %}
+[TASK] {{ taskName }}:
+       {{ taskResult.formatAsString() }}
+       
+{% endfor %}

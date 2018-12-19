@@ -18,6 +18,25 @@
 					"public": true
 				}
 			}
+		},
+		"deployment": {
+			"template" : "basic",
+			"defaultview": "default",
+			"templateengine": "default",
+			"view": {
+				"default" : {
+					"public": true
+				},
+				"apps": {
+					"public": true
+				},
+				"tasks": {
+					"public": true
+				},
+				"run": {
+					"public": true
+				}
+			}
 		}
   }
 }
