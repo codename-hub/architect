@@ -70,8 +70,8 @@ class deployment {
   }
 
   /**
-   * [protected description]
-   * @var [type]
+   * appstack of the foreign app
+   * @var array
    */
   protected $foreignAppstack = null;
 
@@ -93,7 +93,8 @@ class deployment {
   protected $environment = null;
 
   /**
-   * [getEnvironment description]
+   * returns the complete environment config
+   * of the app being deployed
    * @return \codename\core\config [description]
    */
   public function getEnvironment() : \codename\core\config {
@@ -111,7 +112,9 @@ class deployment {
   protected $virtualEnvironment = null;
 
   /**
-   * [getVirtualEnvironment description]
+   * returns the current virtual environment config
+   * of the app being deployed
+   * using the ENV the architect is running in
    * @return \codename\architect\config\environment [description]
    */
   public function getVirtualEnvironment() : \codename\architect\config\environment {
@@ -147,7 +150,7 @@ class deployment {
   }
 
   /**
-   * [createDeploymentTasks description]
+   * creates the list of task instances for the deployment
    * @return [type] [description]
    */
   protected function createDeploymentTasks() {
@@ -164,7 +167,7 @@ class deployment {
   }
 
   /**
-   * [createTaskInstance description]
+   * creates a task instance using a given name & config
    * @param  string $name   [description]
    * @param  array  $task   [description]
    * @return task           [description]
@@ -205,22 +208,6 @@ class deployment {
 
     $config = new \codename\core\config\json($file);
     return new self($vendor, $app, $deploymentName, $config);
-
-
-    // // get all deployment files available
-    // $files = app::getFilesystem()->dirList( $dir );
-    //
-    // $file = $dir . '/' . $f;
-    //
-    // // check for .json extension
-    // $fileInfo = new \SplFileInfo($file);
-    // if($fileInfo->getExtension() === 'json') {
-    //   // get the model filename w/o extension
-    //   $deploymentBasename = $fileInfo->getBasename('.json');
-    //   $config = new \codename\core\config\json($fileInfo->getRealPath());
-    //   return new self($config);
-    // }
-
   }
 
 
