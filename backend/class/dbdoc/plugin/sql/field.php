@@ -132,7 +132,14 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
       $checkDataType = true;
 
-      if($definition['options']['db_column_type'] != null && !in_array($structure['column_type'], $definition['options']['db_column_type'])/* $definition['options']['db_column_type'] != $structure['column_type'] */) {
+      $column_type = trim(preg_replace('/\(.*\)/','',$structure['column_type']));
+
+      if (
+        $definition['options']['db_column_type'] != null &&
+        !in_array($structure['column_type'], $definition['options']['db_column_type']) &&
+        !in_array($column_type, $definition['options']['db_column_type'])
+      ) {
+        /* $definition['options']['db_column_type'] != $structure['column_type'] */
         // check for array-based definition
         // different column type!
         // echo(" -- unequal?");
