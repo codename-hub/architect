@@ -32,7 +32,7 @@ class entry extends \codename\architect\deploy\task\model {
     $text = '';
 
     if(count($errors = $model->getErrors()) > 0) {
-      $text = "Model data validation error: " . print_r($errors, true);
+      $text = "Model '{$model->getIdentifier()}' data validation error: " . print_r($errors, true);
     } else {
 
       // check for PKEY value or uniques
@@ -40,7 +40,7 @@ class entry extends \codename\architect\deploy\task\model {
 
         // we have a primary key - update the whole dataset
         $model->save($normalizedData);
-        $text = 'Model saved via PKEY';
+        $text = "Model '{$model->getIdentifier()}' saved via PKEY";
 
       } else {
         if($model->getConfig()->get('unique')) {
@@ -75,7 +75,7 @@ class entry extends \codename\architect\deploy\task\model {
               // update using found PKEY
               $normalizedData[$model->getPrimarykey()] = $res[0][$model->getPrimarykey()];
               $model->save($normalizedData);
-              $text = 'Model saved via filter, updated';
+              $text = "Model '{$model->getIdentifier()}' saved via filter, updated";
             } else if(count($res) === 0) {
               //
               // NOTE/WARNING:
@@ -86,7 +86,7 @@ class entry extends \codename\architect\deploy\task\model {
               //
               // insert
               $model->save($normalizedData);
-              $text = 'Model saved via filter, inserted/created.';
+              $text = "Model '{$model->getIdentifier()}' saved via filter, inserted/created.";
             } else {
               // error - multiple results
               throw new exception('EXCEPTION_TASK_MODEL_ENTRY_MULTIPLE_UNIQUE_KEY_RESULTS', exception::$ERRORLEVEL_ERROR, $res);
