@@ -23,6 +23,14 @@ class index extends \codename\architect\dbdoc\plugin\index {
     // "index" specified in model definition
     $definition = parent::getDefinition();
 
+    //
+    // NOTE: Bad issue on 2019-02-20:
+    // Index Plugin wants to remove Indexes created
+    // for Foreign & Unique Keys, as well as Primary Keys
+    // after the change in structure retrieval (constraint_name is null)
+    // therefore, we have to check those keys, too.
+    //
+    //
     // for mysql/sql, merge in foreign keys!
     $foreignPlugin = $this->adapter->getPluginInstance('foreign', array(), true);
     $foreignKeys = $foreignPlugin->getDefinition();
@@ -94,31 +102,36 @@ class index extends \codename\architect\dbdoc\plugin\index {
       }
     }
 
-    echo("<pre>Foreign Definition for model [{$this->adapter->model}]".chr(10));
-    print_r([
-      'definition' => $definition,
-      'valid'      => $valid,
-      'structure' => $structure
-    ]);
-    echo("</pre>");
+    //
+    // NOTE: see note above
+    // echo("<pre>Foreign Definition for model [{$this->adapter->model}]".chr(10));
+    // print_r([
+    //   'definition' => $definition,
+    //   'valid'      => $valid,
+    //   'structure' => $structure
+    // ]);
+    // echo("</pre>");
 
     // determine missing constraints
     array_walk($definition, function($d) use ($valid, &$missing) {
       foreach($valid as $v) {
-        echo("-- Compare ".var_export($d,true)." ".gettype($d)." <=> ".var_export($v, true)." ".gettype($v)." <br>".chr(10));
+        // DEBUG
+        // echo("-- Compare ".var_export($d,true)." ".gettype($d)." <=> ".var_export($v, true)." ".gettype($v)." <br>".chr(10));
         if(gettype($v) == gettype($d)) {
           if($d == $v) {
-            echo("-- => valid/equal, skipping.<br>");
+            // DEBUG
+            // echo("-- => valid/equal, skipping.<br>");
             return;
           }
         } else {
-
-          echo("-- => unequal types, skipping.<br>");
+          // DEBUG
+          // echo("-- => unequal types, skipping.<br>");
           continue;
         }
       }
 
-      echo("-- => invalid/unequal, add to missing.<br>");
+      // DEBUG
+      // echo("-- => invalid/unequal, add to missing.<br>");
       $missing[] = $d;
     });
 
@@ -179,7 +192,16 @@ class index extends \codename\architect\dbdoc\plugin\index {
             AND s.table_schema = '{$this->adapter->schema}'
             AND s.table_name = '{$this->adapter->model}'"
     );
+
+    //
+    // NOTE: we removed the following WHERE-component:
     // AND tc.constraint_name IS NULL
+    // and replaced it with a check for just != PRIMARY
+    // because we may have constraints attached (foreign keys!)
+    // So, this plugin now handles ALL indexes,
+    // - explicit indexes (via "index" key in model config)
+    // - implicit indexes (unique & foreign keys)
+    //
 
     $allIndices = $db->getResult();
 
