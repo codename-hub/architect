@@ -38,7 +38,7 @@
 <ul>
   {% for task in response.getData('dbdoc_stats>available_tasks') %}
   <li>
-    Task [{{ task.getTaskTypeName() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
+    Task [{{ task.getTaskTypeName() }}] [{{ task.adapter.getIdentifier() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
   </li>
   {% endfor %}
 </ul>
@@ -53,7 +53,7 @@
 <ul>
   {% for task in response.getData('dbdoc_stats>executed_tasks') %}
   <li>
-    Task [{{ task.getTaskTypeName() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
+    Task [{{ task.getTaskTypeName() }}] [{{ task.adapter.getIdentifier() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
   </li>
   {% endfor %}
 </ul>

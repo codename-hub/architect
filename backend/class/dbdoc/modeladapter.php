@@ -44,6 +44,15 @@ abstract class modeladapter  {
   public $model = null;
 
   /**
+   * at the moment, this just puts out the identifier
+   * (model)
+   * @return string [description]
+   */
+  public function getIdentifier() : string {
+    return "{$this->schema}.{$this->model}";
+  }
+
+  /**
    * [getPlugins description]
    * @return string[]
    */
