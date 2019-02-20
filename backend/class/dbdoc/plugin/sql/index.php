@@ -51,6 +51,17 @@ class index extends \codename\architect\dbdoc\plugin\index {
       $definition[] = $uniqueKey;
     }
 
+    //
+    // make unique!
+    // otherwise, we may get duplicates
+    // NOTE:
+    // this may cause a problem, when creating a foreign key at the same time?
+    //
+    $definition = array_values(array_unique($definition, SORT_REGULAR));
+
+    // print_r($definition);
+    // echo("<br>");
+
     return $definition;
   }
 
