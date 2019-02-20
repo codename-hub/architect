@@ -18,6 +18,37 @@ class index extends \codename\architect\dbdoc\plugin\index {
   /**
    * @inheritDoc
    */
+  public function getDefinition()
+  {
+    // "index" specified in model definition
+    $definition = parent::getDefinition();
+
+    // for mysql/sql, merge in foreign keys!
+    $foreignPlugin = $this->adapter->getPluginInstance('foreign', array(), true);
+    $foreignKeys = $foreignPlugin->getDefinition();
+    foreach($foreignKeys as $fkey => $fkeyConfig) {
+      if(is_array($fkeyConfig['key'])) {
+        // multi-component foreign key - $fkey is NOT a field name, use 'key'-keys
+        $definition[] = array_keys($fkeyConfig['key']);
+      } else {
+        // just use the foreign key definition name (this is the current table's key to be used)
+        $definition[] = $fkey;
+      }
+    }
+
+    // for mysql/sql, merge in unique keys!
+    $uniquePlugin = $this->adapter->getPluginInstance('unique', array(), true);
+    $uniqueKeys = $uniquePlugin->getDefinition();
+    foreach($uniqueKeys as $i => $uniqueKey) {
+      $definition[] = $uniqueKey;
+    }
+
+    return $definition;
+  }
+
+  /**
+   * @inheritDoc
+   */
   public function Compare() : array
   {
     $tasks = array();
@@ -49,23 +80,45 @@ class index extends \codename\architect\dbdoc\plugin\index {
         $valid[] = $indexColumnNames;
       } else {
         // $toomuch = $constraintColumnNames;
+
+        // echo("<pre>");
+        // print_r([
+        //   $definition,
+        //   $indexColumnNames
+        // ]);
+        // echo("</pre>");
+
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "REMOVE_INDEX", array(
           'index_name' => $strucName
         ));
       }
     }
 
+    echo("<pre>Foreign Definition for model [{$this->adapter->model}]".chr(10));
+    print_r([
+      'definition' => $definition,
+      'valid'      => $valid,
+      'structure' => $structure
+    ]);
+    echo("</pre>");
+
     // determine missing constraints
     array_walk($definition, function($d) use ($valid, &$missing) {
       foreach($valid as $v) {
+        echo("-- Compare ".var_export($d,true)." ".gettype($d)." <=> ".var_export($v, true)." ".gettype($v)." <br>".chr(10));
         if(gettype($v) == gettype($d)) {
           if($d == $v) {
+            echo("-- => valid/equal, skipping.<br>");
             return;
           }
         } else {
+
+          echo("-- => unequal types, skipping.<br>");
           continue;
         }
       }
+
+      echo("-- => invalid/unequal, add to missing.<br>");
       $missing[] = $d;
     });
 
@@ -115,17 +168,18 @@ class index extends \codename\architect\dbdoc\plugin\index {
     $db = $this->getSqlAdapter()->db;
 
     $db->query(
-      "SELECT DISTINCT tc.table_schema, tc.table_name, s.index_name, s.column_name, s.seq_in_index
+      "SELECT DISTINCT tc.table_schema, tc.table_name, s.index_name, tc.constraint_name, s.column_name, s.seq_in_index
       FROM information_schema.statistics s
       LEFT OUTER JOIN information_schema.table_constraints tc
           ON tc.table_schema = s.table_schema
              AND tc.table_name = s.table_name
              AND s.index_name = tc.constraint_name
       WHERE 0 = 0
-            AND tc.constraint_name IS NULL
+            AND s.index_name NOT IN ('PRIMARY')
             AND s.table_schema = '{$this->adapter->schema}'
             AND s.table_name = '{$this->adapter->model}'"
     );
+    // AND tc.constraint_name IS NULL
 
     $allIndices = $db->getResult();
 
