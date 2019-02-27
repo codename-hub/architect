@@ -71,14 +71,8 @@ class table extends plugin\table {
 
     // either run sub-plugins virtually or the 'hard' way
 
-    // foreign key plugin
-    $plugin = $this->adapter->getPluginInstance('foreign', array(), $this->virtual);
-    if($plugin != null) {
-      $this->adapter->addToQueue($plugin, true);
-    }
-
-    // collection key plugin
-    $plugin = $this->adapter->getPluginInstance('collection', array(), $this->virtual);
+    // execute plugin for indices
+    $plugin = $this->adapter->getPluginInstance('index', array(), $this->virtual);
     if($plugin != null) {
       $this->adapter->addToQueue($plugin, true);
     }
@@ -89,8 +83,14 @@ class table extends plugin\table {
       $this->adapter->addToQueue($plugin, true);
     }
 
-    // execute plugin for indices
-    $plugin = $this->adapter->getPluginInstance('index', array(), $this->virtual);
+    // collection key plugin
+    $plugin = $this->adapter->getPluginInstance('collection', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
+    }
+
+    // foreign key plugin
+    $plugin = $this->adapter->getPluginInstance('foreign', array(), $this->virtual);
     if($plugin != null) {
       $this->adapter->addToQueue($plugin, true);
     }

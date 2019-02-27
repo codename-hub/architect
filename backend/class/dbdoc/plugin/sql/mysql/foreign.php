@@ -33,7 +33,7 @@ class foreign extends \codename\architect\dbdoc\plugin\sql\foreign {
       // drop the associated index
       $db->query(
        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model}
-        DROP INDEX {$constraintName};"
+        DROP INDEX IF EXISTS {$constraintName};"
       );
       return;
     }

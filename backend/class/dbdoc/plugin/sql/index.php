@@ -81,6 +81,7 @@ class index extends \codename\architect\dbdoc\plugin\index {
     $missing = array();
     $toomuch = array();
 
+    // $fieldsOnly = $this->parameter['fields_only'] ?? null;
     foreach($structure as $strucName => $struc) {
 
       // get ordered (?) column_names
@@ -90,6 +91,10 @@ class index extends \codename\architect\dbdoc\plugin\index {
         }, $struc
       );
 
+      // if($fieldsOnly && !in_array($indexColumnNames, $fieldsOnly, true)) {
+      //   echo "Skipping ".var_export($indexColumnNames, true)." because not contained in fieldsOnly ".var_export($fieldsOnly, true)."<br>";
+      //   continue;
+      // }
       // reduce to string, if only one element
       $indexColumnNames = count($indexColumnNames) == 1 ? $indexColumnNames[0] : $indexColumnNames;
 
@@ -147,6 +152,12 @@ class index extends \codename\architect\dbdoc\plugin\index {
     });
 
     foreach($missing as $def) {
+
+      // if($fieldsOnly && !in_array($def, $fieldsOnly, true)) {
+      //   echo "Skipping ".var_export($def, true)." because not contained in fieldsOnly ".var_export($fieldsOnly, true)."<br>";
+      //   continue;
+      // }
+
       if(is_array($def)) {
         // multi-column constraint
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_INDEX", array(
@@ -275,7 +286,7 @@ class index extends \codename\architect\dbdoc\plugin\index {
       $indexName = $task->data->get('index_name');
 
       $db->query(
-       "DROP INDEX {$indexName} ON {$this->adapter->schema}.{$this->adapter->model};"
+       "DROP INDEX IF EXISTS {$indexName} ON {$this->adapter->schema}.{$this->adapter->model};"
       );
     }
   }
