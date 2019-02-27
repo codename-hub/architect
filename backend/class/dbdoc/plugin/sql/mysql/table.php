@@ -45,5 +45,10 @@ class table extends plugin\sql\table {
       );
 
     }
+    if($task->name == 'DELETE_COLUMN') {
+      $db->query(
+        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} DROP COLUMN {$task->data->get('field')};"
+      );
+    }
   }
 }

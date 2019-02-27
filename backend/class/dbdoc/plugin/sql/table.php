@@ -25,6 +25,31 @@ class table extends plugin\table {
   /**
    * @inheritDoc
    */
+  protected function getCheckStructure($tasks) {
+    $db = $this->getSqlAdapter()->db;
+    $db->query(
+        "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = '{$this->adapter->schema}' AND table_name = '{$this->adapter->model}';"
+    );
+    $columns = $db->getResult();
+
+    if ($columns ?? false) {
+      $fields = $this->adapter->config->get()['field'] ?? [];
+
+      foreach($columns as $column) {
+        if (!in_array($column['COLUMN_NAME'], $fields)) {
+          $tasks[] = $this->createTask(task::TASK_TYPE_OPTIONAL, "DELETE_COLUMN", array(
+            'table' => $this->adapter->model,
+            'field' => $column['COLUMN_NAME']
+          ));
+        }
+      }
+    }
+    return $tasks;
+  }
+
+  /**
+   * @inheritDoc
+   */
   public function Compare() : array
   {
     $tasks = array();
@@ -41,6 +66,8 @@ class table extends plugin\table {
         'table' => $definition
       ));
     }
+
+    $tasks = $this->getCheckStructure($tasks);
 
     // either run sub-plugins virtually or the 'hard' way
 
