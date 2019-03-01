@@ -36,9 +36,21 @@ abstract class model extends \codename\architect\deploy\task {
    * [getModelInstance description]
    * @return \codename\core\model [description]
    */
-  protected function getModelInstance() : \codename\core\model {
+  /**
+   * [getModelInstance description]
+   * @param  string|null               $schemaName [description]
+   * @param  string|null               $modelName  [description]
+   * @return \codename\core\model         [description]
+   */
+  protected function getModelInstance(string $schemaName = null, string $modelName = null) : \codename\core\model {
+    if(!$schemaName) {
+      $schemaName = $this->schema;
+    }
+    if(!$modelName) {
+      $modelName = $this->model;
+    }
     $useAppstack = $this->getDeploymentInstance()->getAppstack();
-    $modelconfig = (new \codename\architect\config\json\virtualAppstack("config/model/" . $this->schema . '_' . $this->model . '.json', true, true, $useAppstack))->get();
+    $modelconfig = (new \codename\architect\config\json\virtualAppstack("config/model/" . $schemaName . '_' . $modelName . '.json', true, true, $useAppstack))->get();
     $modelconfig['appstack'] = $useAppstack;
     $model = new \codename\architect\model\schematic\sql\dynamic($modelconfig, function(string $connection, bool $storeConnection = false) {
       $dbValueObjecttype = new \codename\core\value\text\objecttype('database');
@@ -49,7 +61,7 @@ abstract class model extends \codename\architect\deploy\task {
         $dbValueObjectidentifier,
         $storeConnection);
     });
-    $model->setConfig(null, $this->schema, $this->model);
+    $model->setConfig(null, $schemaName, $modelName);
     return $model;
   }
 
