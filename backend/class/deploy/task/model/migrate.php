@@ -52,9 +52,6 @@ class migrate extends \codename\architect\deploy\task\model {
     $sourceModel = $this->getModelInstance($this->schema, $this->model);
     $targetModel = $this->getModelInstance($this->targetSchema, $this->targetModel);
 
-    $transaction = new \codename\core\transaction('migrate', [ $sourceModel, $targetModel ]);
-
-    $transaction->start();
 
     // hide all fields not necessary.
     $sourceModel->hideAllFields();
@@ -120,45 +117,67 @@ class migrate extends \codename\architect\deploy\task\model {
       }
     }
 
-    $start = microtime(true);
-    $result = $sourceModel->search()->getResult();
-    $end = microtime(true);
+    $transaction = new \codename\core\transaction('migrate', [ $sourceModel, $targetModel ]);
 
-    echo("Query completed in " . ($end-$start) . ' ms'.chr(10));
-    echo("Migrating...".chr(10));
+    $runBatch = true;
+    $migratedCount = 0;
 
-    foreach($result as $sourceDataset) {
-      $targetDataset = [];
-      foreach($this->map as $sourceModelField => $targetModelField) {
-        $targetDataset[$targetModelField] = $sourceDataset[$sourceModelField];
+    while($runBatch === true) {
+
+      $start = microtime(true);
+      if($this->config->get('batch_size')) {
+        echo("Batch Size: " . ($this->config->get('batch_size')) . ''.chr(10));
+        $sourceModel->setLimit(intval($this->config->get('batch_size')));
+      }
+      $result = $sourceModel->search()->getResult();
+      $end = microtime(true);
+
+      echo("Query completed in " . ($end-$start) . ' ms'.chr(10));
+      echo("Migrating...".chr(10));
+
+      if(count($result) === 0) {
+        echo("No more migration candidates, breaking".chr(10));
+        $runBatch = false;
+        break;
       }
 
-      $targetModel->save($targetDataset);
-      $lastInsertId = $targetModel->lastInsertId();
+      $transaction->start();
 
-      if($backMap) {
-        $updateSourceDataset = [
-          $sourceModel->getPrimarykey() => $sourceDataset[$sourceModel->getPrimarykey()]
-        ];
-
-        foreach($backMap as $sourceModelField => $targetModelField) {
-          if($targetModelField === $targetModel->getPrimarykey()) {
-            $updateSourceDataset[$sourceModelField] = $lastInsertId;
-          } else {
-            $updateSourceDataset[$sourceModelField] = $targetDataset[$targetModelField];
-          }
+      foreach($result as $sourceDataset) {
+        $targetDataset = [];
+        foreach($this->map as $sourceModelField => $targetModelField) {
+          $targetDataset[$targetModelField] = $sourceDataset[$sourceModelField];
         }
 
-        $sourceModel->save($updateSourceDataset);
+        $targetModel->save($targetDataset);
+        $lastInsertId = $targetModel->lastInsertId();
+
+        if($backMap) {
+          $updateSourceDataset = [
+            $sourceModel->getPrimarykey() => $sourceDataset[$sourceModel->getPrimarykey()]
+          ];
+
+          foreach($backMap as $sourceModelField => $targetModelField) {
+            if($targetModelField === $targetModel->getPrimarykey()) {
+              $updateSourceDataset[$sourceModelField] = $lastInsertId;
+            } else {
+              $updateSourceDataset[$sourceModelField] = $targetDataset[$targetModelField];
+            }
+          }
+
+          $sourceModel->save($updateSourceDataset);
+        }
+
+        // echo("Migrated [{$sourceDataset[$sourceModel->getPrimaryKey()]} => {$lastInsertId}]".chr(10));
       }
 
-      // echo("Migrated [{$sourceDataset[$sourceModel->getPrimaryKey()]} => {$lastInsertId}]".chr(10));
+      $migratedCount += count($result);
+
+      $transaction->end();
     }
 
-    $transaction->end();
-
     return new \codename\architect\deploy\taskresult\text([
-      'text' => print_r("meh", true)." result count: ".count($result)
+      'text' => "migrated count: ".$migratedCount
     ]);
   }
 
