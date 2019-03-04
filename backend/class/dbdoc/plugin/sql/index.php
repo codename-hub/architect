@@ -212,7 +212,8 @@ class index extends \codename\architect\dbdoc\plugin\index {
       WHERE 0 = 0
             AND s.index_name NOT IN ('PRIMARY')
             AND s.table_schema = '{$this->adapter->schema}'
-            AND s.table_name = '{$this->adapter->model}'"
+            AND s.table_name = '{$this->adapter->model}'
+            AND s.index_type != 'FULLTEXT'"
     );
 
     //

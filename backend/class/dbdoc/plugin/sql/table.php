@@ -77,6 +77,12 @@ class table extends plugin\table {
       $this->adapter->addToQueue($plugin, true);
     }
 
+    // execute plugin for fulltext
+    $plugin = $this->adapter->getPluginInstance('fulltext', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin, true);
+    }
+
     // execute plugin for unique constraints
     $plugin = $this->adapter->getPluginInstance('unique', array(), $this->virtual);
     if($plugin != null) {
