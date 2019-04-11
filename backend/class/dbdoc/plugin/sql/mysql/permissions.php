@@ -76,9 +76,18 @@ class permissions extends \codename\architect\dbdoc\plugin\sql\permissions {
     }
 
     if(count($missing) > 0) {
+
+      $userPlugin = $this->adapter->getPluginInstance('user');
+      $tablePlugin = $this->adapter->getPluginInstance('table');
+
+      $precededBy = [
+        $userPlugin->getTaskIdentifierPrefix(), // execute user-related plugins first
+        $tablePlugin->getTaskIdentifierPrefix() // also table-related ones
+      ];
+
       $tasks[] = $this->createTask(task::TASK_TYPE_REQUIRED, "GRANT_PERMISSIONS", array(
         'permissions' => $missing
-      ));
+      ), $precededBy);
     }
 
     return $tasks;
