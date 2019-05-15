@@ -300,13 +300,13 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
    * @var string[]
    */
   protected $conversionTable = array(
-      'text'            => [ 'text', 'mediumtext' ],
+      'text'            => [ 'text', 'mediumtext', 'longtext' ],
       'text_timestamp'  => [ 'datetime' ],
       'text_date'       => [ 'date' ],
       'number'          => [ 'numeric', 'decimal' ], // was integer
       'number_natural'  => [ 'integer', 'int', 'bigint' ],
       'boolean'         => [ 'boolean' ],
-      'structure'       => [ 'text', 'mediumtext' ],
+      'structure'       => [ 'text', 'mediumtext', 'longtext' ],
       'mixed'           => [ 'text' ],
       // 'virtual'         => [ null ]
       // 'collection'
