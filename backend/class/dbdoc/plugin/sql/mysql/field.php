@@ -43,13 +43,14 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
   }
 
   /**
-   * [protected description]
+   * array of default datatypes (note the difference to the column type!)
    * @var [type]
    */
   protected $defaultsConversionTable = array(
     'bigint' => 'bigint(20)',
     'integer' => 'int(11)',
-    'text'    => 'text'
+    'text'    => 'text',
+    'date'    => 'date'
   );
 
   /**
