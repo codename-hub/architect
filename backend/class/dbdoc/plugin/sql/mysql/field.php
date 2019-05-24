@@ -50,7 +50,8 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
     'bigint' => 'bigint(20)',
     'integer' => 'int(11)',
     'text'    => 'text',
-    'date'    => 'date'
+    'date'    => 'date',
+    'datetime' => 'datetime'
   );
 
   /**
