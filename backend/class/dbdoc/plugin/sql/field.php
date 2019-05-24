@@ -488,8 +488,8 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
     }
 
     return [
-      'db_column_type' => !is_array($dbColumnType) ? [$dbColumnType] : $dbColumnType,
-      'db_data_type' => !is_array($dbDataType) ? [$dbDataType] : $dbDataType
+      'db_column_type' => $dbColumnType && !is_array($dbColumnType) ? [$dbColumnType] : $dbColumnType,
+      'db_data_type' => $dbDataType && !is_array($dbDataType) ? [$dbDataType] : $dbDataType
     ];
   }
 }
