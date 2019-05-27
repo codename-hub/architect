@@ -330,23 +330,26 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
   protected function getDatatypeConversionOptions(string $key) {
     $conversionTable = $this->getDatatypeConversionTable();
     if(array_key_exists($key,$conversionTable)) {
-			// use defined type
-			$res = $conversionTable[$key];
+      // use defined type
+      $res = $conversionTable[$key];
       return $res;
     } else {
       $keyComponents = explode('_', $key);
+      $keyComponentCount = count($keyComponents);
 
-      // TODO: add top-down search
+      // CHANGED/ADDED: add top-down search
       // recursively re-combine $t's elements and reduce each loop by 1
-
-			if(array_key_exists($keyComponents[0], $conversionTable)) {
-				// we have a defined underlying db field type
-        $res = $conversionTable[$keyComponents[0]];
-				return $res;
-			} else {
-				// throw some error, as it is not in our type definition library
-        throw new catchableException('EXCEPTION_DBDOC_MODEL_DATATYPE_NOT_IN_DEFINITION_LIBRARY', catchableException::$ERRORLEVEL_ERROR, array($key, $keyComponents[0]));
+      // NOTE: the direct full match is handled above
+      for ($i=0; $i < $keyComponentCount; $i++) {
+        $testKey = implode('_', array_slice($keyComponents, 0, $keyComponentCount - $i));
+        if(array_key_exists($testKey, $conversionTable)) {
+          $res = $conversionTable[$testKey];
+          return $res;
+        }
       }
+
+      // throw some error, as it is not in our type definition library
+      throw new catchableException('EXCEPTION_DBDOC_MODEL_DATATYPE_NOT_IN_DEFINITION_LIBRARY', catchableException::$ERRORLEVEL_ERROR, array($key, $keyComponents[0]));
     }
   }
 
@@ -360,8 +363,8 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
       throw new exception("EXCEPTION_DBDOC_PLUGIN_SQL_FIELD_MODEL_DATATYPE_NULL", exception::$ERRORLEVEL_ERROR, $this->parameter);
     }
     $conversionOptions = $this->getDatatypeConversionOptions($t);
-		return $this->getDatatypeConversionOptions($t); // all results
-	}
+    return $this->getDatatypeConversionOptions($t); // all results
+  }
 
 
   /**
@@ -389,20 +392,20 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
 
     $res = [];
     foreach($checkTypes as $checkType) {
-  		if(array_key_exists($checkType,$conversionTable)) {
-  			// use defined type
-  			$res[] = $conversionTable[$checkType];
-  		} else {
-  			$tArr = explode('_', $checkType);
-  			if(array_key_exists($tArr[0], $conversionTable)) {
-  				// we have a defined underlying db field type
-  				$res[] = $conversionTable[$tArr[0]];
-  			} else {
-  				// throw some error, as it is not in our type definition library
+      if(array_key_exists($checkType,$conversionTable)) {
+        // use defined type
+        $res[] = $conversionTable[$checkType];
+      } else {
+        $tArr = explode('_', $checkType);
+        if(array_key_exists($tArr[0], $conversionTable)) {
+          // we have a defined underlying db field type
+          $res[] = $conversionTable[$tArr[0]];
+        } else {
+          // throw some error, as it is not in our type definition library
           // throw new \codename\core\exception('EXCEPTION_DBDOC_MODEL_COLUMN_TYPE_NOT_IN_DEFINITION_LIBRARY', catchableException::$ERRORLEVEL_ERROR, array($t, $tArr[0]));
           // return null;
         }
-  		}
+      }
     }
     return $res;
   }
@@ -485,8 +488,8 @@ abstract class field extends \codename\architect\dbdoc\plugin\field {
     }
 
     return [
-      'db_column_type' => !is_array($dbColumnType) ? [$dbColumnType] : $dbColumnType,
-      'db_data_type' => !is_array($dbDataType) ? [$dbDataType] : $dbDataType
+      'db_column_type' => $dbColumnType && !is_array($dbColumnType) ? [$dbColumnType] : $dbColumnType,
+      'db_data_type' => $dbDataType && !is_array($dbDataType) ? [$dbDataType] : $dbDataType
     ];
   }
 }
