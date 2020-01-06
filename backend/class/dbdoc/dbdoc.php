@@ -210,7 +210,8 @@ class dbdoc  {
    * @var [type]
    */
   protected static $driverTranslation = array(
-    'mysql' => 'sql\\mysql'
+    'mysql' => 'sql\\mysql',
+    'sqlite' => 'sql\\sqlite'
   );
 
   /**
