@@ -1,7 +1,6 @@
 {
     "name": "codename/architect",
     "description": "This is going to be the management application for database and application management.",
-    "version": "0.0.1",
     "type": "package",
     "keywords": ["architect", "manager", "codename", "core"],
     "time": "2017-10-05",
