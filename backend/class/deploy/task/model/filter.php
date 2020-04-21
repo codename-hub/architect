@@ -62,7 +62,26 @@ abstract class filter extends \codename\architect\deploy\task\model {
     if($this->filtercollections) {
       $filtersApplied = true;
       foreach($this->filtercollections as $filtercollection) {
-        $model->addDefaultFilterCollection($filtercollection['filters'], $filtercollection['group_operator'] ?? 'AND', $filtercollection['group_name'] ?? 'default', $filtercollection['conjunction'] ?? 'AND');
+
+        // evaluate filters
+        $filters = [];
+        foreach($filtercollection['filters'] as $filter) {
+          $filterValue = $filter['value'];
+          if($filter['eval'] ?? false) {
+            if($filter['value']['function'] ?? false) {
+              if(is_callable($filter['value']['function'])) {
+                $filterValue = call_user_func($filter['value']['function']); // TODO: parameters?
+              } else {
+                throw new exception('EXCEPTION_TASK_MODEL_FILTERCOLLECTION_FILTER_VALUE_EVAL_INVALID', exception::$ERRORLEVEL_ERROR, $filter['value']['function']);
+              }
+            } else {
+              throw new exception('EXCEPTION_TASK_MODEL_FILTERCOLLECTION_FILTER_VALUE_FUNCTION_NOT_SET', exception::$ERRORLEVEL_ERROR, $filter['value']);
+            }
+          }
+          $filters[] = [ 'field' => $filter['field'], 'operator' => $filter['operator'], 'value' => $filterValue ];
+        }
+
+        $model->addDefaultFilterCollection($filters, $filtercollection['group_operator'] ?? 'AND', $filtercollection['group_name'] ?? 'default', $filtercollection['conjunction'] ?? 'AND');
       }
     }
     if(!$filtersApplied) {
