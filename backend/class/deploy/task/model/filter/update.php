@@ -38,7 +38,9 @@ class update extends \codename\architect\deploy\task\model\filter {
     // TODO: we might make sure there's no PKEY or unique key value inside the dataset
     //
 
-    $model->validate($normalizedData);
+    if($this->config->get('validate') ?? true) {
+      $model->validate($normalizedData);
+    }
 
     $text = '';
 
