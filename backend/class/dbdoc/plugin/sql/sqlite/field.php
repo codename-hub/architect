@@ -56,7 +56,11 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
     $res = $db->getResult();
 
     if(count($res) === 1) {
-      return $res[0];
+      // Change sqlite pragma's resultset
+      // and map type to column_type (which is handled in generic field plugin)
+      $r = $res[0];
+      $r['column_type'] = $r['type'];
+      return $r;
     }
     return null;
   }

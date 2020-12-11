@@ -183,6 +183,9 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
 
     // perform grouping
     foreach($allIndices as $index) {
+      // Compat mapping to generic index plugin
+      $index['index_name'] = $index['name'];
+
       if(array_key_exists($index['index_name'], $indexGroups)) {
         // match to existing group
         foreach($indexGroups as $groupName => $group) {
@@ -237,8 +240,9 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
       // simply drop index by index_name
       $indexName = $task->data->get('index_name');
 
+
       $db->query(
-       "DROP INDEX IF EXISTS {$indexName} ON '{$this->adapter->schema}.{$this->adapter->model}';"
+       "DROP INDEX IF EXISTS {$indexName};" // ON '{$this->adapter->schema}.{$this->adapter->model}'
       );
     }
   }
