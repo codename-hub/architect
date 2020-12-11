@@ -57,14 +57,16 @@ class dbdoc  {
   protected const ARCHITECT_ENV_PREFIX = 'architect_';
 
   /**
-   * @param string $app
-   * @param string $vendor
+   * @param string      $app
+   * @param string      $vendor
+   * @param string|null $env    [override environment]
    */
-  public function __construct(string $app, string $vendor)
+  public function __construct(string $app, string $vendor, ?string $env = null)
   {
     $this->errorstack = new errorstack('DBDOC');
     $this->app = $app;
     $this->vendor = $vendor;
+    $this->env = $env ?? app::getEnv();
     $this->init();
   }
 
@@ -94,6 +96,20 @@ class dbdoc  {
    */
   public function getVendor() : string {
     return $this->vendor;
+  }
+
+  /**
+   * [protected description]
+   * @var string
+   */
+  protected $env;
+
+  /**
+   * [getEnv description]
+   * @return string [description]
+   */
+  public function getEnv() : string {
+    return $this->env;
   }
 
   /**
@@ -202,7 +218,7 @@ class dbdoc  {
    * @return string [description]
    */
   protected function getPrefixedEnvironmentName() : string {
-    return self::ARCHITECT_ENV_PREFIX . app::getEnv();
+    return self::ARCHITECT_ENV_PREFIX . $this->env;
   }
 
   /**
