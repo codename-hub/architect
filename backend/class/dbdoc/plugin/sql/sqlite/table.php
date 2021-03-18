@@ -62,7 +62,7 @@ class table extends plugin\sql\table {
       if($plugin != null) {
         if(count($compareTasks = $plugin->Compare()) > 0) {
           // change(s) detected
-          $modificationTasks = array_merge($modificationTasks, $compareTasks);
+          $regularTasks = array_merge($regularTasks, $compareTasks);
         }
       }
 
