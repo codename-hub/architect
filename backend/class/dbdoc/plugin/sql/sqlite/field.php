@@ -6,7 +6,8 @@ use codename\architect\dbdoc\task;
  * plugin for providing and comparing model field data details
  * @package architect
  */
-class field extends \codename\architect\dbdoc\plugin\sql\field {
+class field extends \codename\architect\dbdoc\plugin\sql\field
+  implements partialStatementInterface {
 
   /**
    * @inheritDoc
@@ -21,6 +22,14 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
     // TODO
     $definition['options']['db_data_type'] = null;
     $definition['options']['db_column_type'] = $this->convertModelDataTypeToDbDataType($definition['datatype']);
+
+
+    // Override regular SQL-style to match SQLite's requirements
+    // at least for datetime-fields with a default value
+    if($definition['datatype'] == 'text_timestamp' && $definition['default'] == 'current_timestamp()') {
+      $definition['default'] = 'CURRENT_TIMESTAMP';
+    }
+
     return $definition;
   }
 
@@ -32,25 +41,13 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
   {
     // get some column specifications
     $db = $this->getSqlAdapter()->db;
-    // $db->query(
-    //   "SELECT column_name, column_type, data_type, is_nullable, column_default
-    //   FROM information_schema.columns
-    //   WHERE table_schema = '{$this->adapter->schema}'
-    //   AND table_name = '{$this->adapter->model}'
-    //   AND column_name = '{$this->parameter['field']}';"
-    // );
-    // $db->query(
-    //   "PRAGMA table_info('{$this->adapter->schema}.{$this->adapter->model}');"
-    // );
+
     $db->query(
       "SELECT *
         FROM pragma_table_info('{$this->adapter->schema}.{$this->adapter->model}')
         WHERE
         name = '{$this->parameter['field']}'
         ;"
-      // "PRAGMA table_info('{$this->adapter->schema}.{$this->adapter->model}');"
-      // WHERE table_schema = '{$this->adapter->schema}'
-      // AND table_name = '{$this->adapter->model}'
     );
 
     $res = $db->getResult();
@@ -60,6 +57,7 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
       // and map type to column_type (which is handled in generic field plugin)
       $r = $res[0];
       $r['column_type'] = $r['type'];
+      $r['column_default'] = $r['dflt_value'];
       return $r;
     }
     return null;
@@ -98,6 +96,51 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
   }
 
   /**
+   * [getPartialStatement description]
+   * @return [type] [description]
+   */
+  public function getPartialStatement() {
+    $definition = $this->getDefinition();
+
+    $attributes = array();
+
+    if($definition['primary']) {
+      // support for single-column PKEYs
+      $attributes[] = 'PRIMARY KEY';
+    }
+
+    if($definition['auto_increment']) {
+      // support for single-column PKEYs
+      $attributes[] = 'AUTOINCREMENT';
+    }
+
+    if($definition['notnull'] ?? false) {
+      $attributes[] = "NOT NULL";
+    }
+
+    if(isset($definition['default'])) {
+      //
+      // Special case: field is timestamp && default is CURRENT_TIMESTAMP
+      //
+      if($definition['datatype'] === 'text_timestamp' && $definition['default'] == 'CURRENT_TIMESTAMP') {
+        $attributes[] = 'DEFAULT CURRENT_TIMESTAMP'; // '(DATETIME(\'now\'))'; // WORKAROUND! // $definition['default'];
+      } else {
+        $attributes[] = "DEFAULT ".json_encode($definition['default']);
+      }
+    }
+
+    // TODO: add unique
+    // TODO: add index
+
+    $add = implode(' ', $attributes);
+
+    // fallback from specific column types to a more generous type
+    $columnType = $definition['options']['db_column_type'][0] ?? $definition['options']['db_data_type'][0];
+
+    return "{$definition['field']} {$columnType} {$add}";
+  }
+
+  /**
    * @inheritDoc
    */
   public function runTask(\codename\architect\dbdoc\task $task)
@@ -118,8 +161,8 @@ class field extends \codename\architect\dbdoc\plugin\sql\field {
         //
         // Special case: field is timestamp && default is CURRENT_TIMESTAMP
         //
-        if($definition['datatype'] === 'text_timestamp' && $definition['default'] == 'current_timestamp()') {
-          // $attributes[] = 'DEFAULT CURRENT_TIMESTAMP'; // '(DATETIME(\'now\'))'; // WORKAROUND! // $definition['default'];
+        if($definition['datatype'] === 'text_timestamp' && $definition['default'] == 'CURRENT_TIMESTAMP') {
+          $attributes[] = 'DEFAULT CURRENT_TIMESTAMP'; // '(DATETIME(\'now\'))'; // WORKAROUND! // $definition['default'];
         } else {
           $attributes[] = "DEFAULT ".json_encode($definition['default']);
         }

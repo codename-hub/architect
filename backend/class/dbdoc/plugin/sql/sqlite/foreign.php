@@ -7,7 +7,8 @@ use codename\core\exception;
  * plugin for providing and comparing foreign field config in a model
  * @package architect
  */
-class foreign extends \codename\architect\dbdoc\plugin\sql\foreign {
+class foreign extends \codename\architect\dbdoc\plugin\sql\foreign
+  implements partialStatementInterface {
 
   /**
    * @inheritDoc
@@ -35,8 +36,35 @@ class foreign extends \codename\architect\dbdoc\plugin\sql\foreign {
   /**
    * @inheritDoc
    */
+  public function Compare(): array
+  {
+    return [];
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getPartialStatement()
+  {
+    $definition = $this->getDefinition();
+
+    $foreignStatements = [];
+    foreach($definition as $fkeyName => $def) {
+      $constraintName = "fkey_" . md5("{$this->adapter->model}_{$def['model']}_{$fkeyName}_fkey");
+      $foreignStatements[] = "CONSTRAINT {$constraintName} FOREIGN KEY ({$fkeyName}) REFERENCES `{$def['schema']}.{$def['model']}` ({$def['key']})";
+    }
+
+    return $foreignStatements;
+  }
+
+  /**
+   * @inheritDoc
+   */
   public function runTask(\codename\architect\dbdoc\task $task)
   {
+    // Disabled, as Sqlite's FKEY implementation is quite different.
+    return;
+
     $db = $this->getSqlAdapter()->db;
 
     // NOTE: Special implementation for MySQL
@@ -61,6 +89,7 @@ class foreign extends \codename\architect\dbdoc\plugin\sql\foreign {
       );
       return;
     }
+
     parent::runTask($task);
   }
 }

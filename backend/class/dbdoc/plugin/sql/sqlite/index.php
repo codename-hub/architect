@@ -41,12 +41,28 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
         }, $struc
       );
 
+      // $tasks[] = $this->createTask(task::TASK_TYPE_INFO, "FOUND_INDEXES", array(
+      //   'structure' => $structure
+      // ));
+
       // if($fieldsOnly && !in_array($indexColumnNames, $fieldsOnly, true)) {
       //   echo "Skipping ".var_export($indexColumnNames, true)." because not contained in fieldsOnly ".var_export($fieldsOnly, true)."<br>";
       //   continue;
       // }
       // reduce to string, if only one element
       $indexColumnNames = count($indexColumnNames) == 1 ? $indexColumnNames[0] : $indexColumnNames;
+      //
+      // if($indexColumnNames === 'productpricing_product_id') {
+      //   print_r($definition);
+      //   print_r($struc);
+      //   die();
+      // }
+
+      // if($strucName == 'index_5cda4449ac0c1f3b3455772af51d07ac' || $indexColumnNames == 'productpricing_product_id') {
+      //   print_r($indexColumnNames);
+      //   print_r($definition);
+      //   die();
+      // }
 
       // compare!
       if(in_array($indexColumnNames, $definition)) {
@@ -63,7 +79,7 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
         // echo("</pre>");
 
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "REMOVE_INDEX", array(
-          'index_name' => $strucName
+          'index_name' => $strucName,
         ));
       }
     }
@@ -98,6 +114,7 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
 
       // DEBUG
       // echo("-- => invalid/unequal, add to missing.<br>");
+      // print_r($d);
       $missing[] = $d;
     });
 
@@ -108,15 +125,29 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
       //   continue;
       // }
 
+      $columns = is_array($def) ? implode(',', $def) : $def;
+      $indexName = 'index_' . md5("{$this->adapter->schema}.{$this->adapter->model}-".$columns); // prepend schema+model
+
+      // if($indexName == 'index_5cda4449ac0c1f3b3455772af51d07ac') {
+      //   print_r($def);
+      //   print_r($columns);
+      //   print_r($definition);
+      //   die();
+      // }
+
       if(is_array($def)) {
         // multi-column constraint
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_INDEX", array(
-          'index_columns' => $def
+          'index_name' => $indexName,
+          'index_columns' => $def,
+          // 'raw_columns' =>$columns
         ));
       } else {
         // single-column constraint
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_INDEX", array(
-          'index_columns' => $def
+          'index_name' => $indexName,
+          'index_columns' => $def,
+          // 'raw_columns' =>$columns
         ));
       }
     }
@@ -186,25 +217,53 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
       // Compat mapping to generic index plugin
       $index['index_name'] = $index['name'];
 
-      if(array_key_exists($index['index_name'], $indexGroups)) {
-        // match to existing group
-        foreach($indexGroups as $groupName => $group) {
-          if($index['index_name'] == $groupName) {
-            $indexGroups[$groupName][] = $index;
-            break;
-          }
-        }
-      } else {
-        // create new group
-        $indexGroups[$index['index_name']][] = $index;
+      // if($index['name'] == 'index_e7760f32be0d18cb84d382d6b705b5b1') {
+      //   print_r($index);
+      // }
+
+      $db->query("PRAGMA index_info('{$index['index_name']}')");
+      $indexInfoRes = $db->getResult();
+
+      // $indexInfo = $indexInfoRes[0];
+      // print_r($index);
+      // print_r($indexInfo);
+      // die();
+      // if($index['name'] == 'index_e7760f32be0d18cb84d382d6b705b5b1') {
+      //   print_r($indexInfoRes);
+      // }
+
+      foreach($indexInfoRes as $indexColumn) {
+        $indexGroups[$index['index_name']][] = array_merge(
+          $index,
+          $indexColumn,
+          [ 'column_name' => $indexColumn['name'] ]
+        );
       }
+
+      // print_r($indexInfo);
+
+      // if(array_key_exists($index['index_name'], $indexGroups)) {
+      //   // match to existing group
+      //   foreach($indexGroups as $groupName => $group) {
+      //     if($index['index_name'] == $groupName) {
+      //       $indexGroups[$groupName][] = $index;
+      //       break;
+      //     }
+      //   }
+      // } else {
+      //   // create new group
+      //   $indexGroups[$index['index_name']][] = $index;
+      // }
     }
+
+    // print_r($indexGroups);
+    // die();
 
     $sortedIndexGroups = [];
     // sort!
     foreach($indexGroups as $groupName => $group) {
       usort($group, function($left, $right) {
-        return $left['seq_in_index'] > $right['seq_in_index'];
+        return $left['seqno'] > $right['seqno'];
       });
       $sortedIndexGroups[$groupName] = $group;
     }
@@ -228,7 +287,7 @@ class index extends \codename\architect\dbdoc\plugin\sql\index {
 
       $indexColumns = $task->data->get('index_columns');
       $columns = is_array($indexColumns) ? implode(',', $indexColumns) : $indexColumns;
-      $indexName = 'index_' . md5($columns);
+      $indexName = 'index_' . md5("{$this->adapter->schema}.{$this->adapter->model}-".$columns);// prepend schema+model
 
       $db->query(
        "CREATE INDEX {$indexName} ON '{$this->adapter->schema}.{$this->adapter->model}' ({$columns});"
