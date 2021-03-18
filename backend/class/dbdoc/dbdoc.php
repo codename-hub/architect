@@ -244,7 +244,7 @@ class dbdoc  {
    * @param  \codename\architect\config\environment     $env    [description]
    * @return \codename\architect\dbdoc\modeladapter         [description]
    */
-  protected function getModelAdapter(string $schema, string $model, array $config, \codename\architect\config\environment $env) {
+  public function getModelAdapter(string $schema, string $model, array $config, \codename\architect\config\environment $env) {
 
     // validate model configuration
     if(count($errors = app::getValidator('structure_config_model')->reset()->validate($config)) > 0) {
