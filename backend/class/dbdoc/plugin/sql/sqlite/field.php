@@ -125,7 +125,11 @@ class field extends \codename\architect\dbdoc\plugin\sql\field
       if($definition['datatype'] === 'text_timestamp' && $definition['default'] == 'CURRENT_TIMESTAMP') {
         $attributes[] = 'DEFAULT CURRENT_TIMESTAMP'; // '(DATETIME(\'now\'))'; // WORKAROUND! // $definition['default'];
       } else {
-        $attributes[] = "DEFAULT ".json_encode($definition['default']);
+        if(is_bool($definition['default'])) {
+          $attributes[] = "DEFAULT ".(int)$definition['default'];
+        } else {
+          $attributes[] = "DEFAULT ".json_encode($definition['default']);
+        }
       }
     }
 
