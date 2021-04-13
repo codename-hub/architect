@@ -75,7 +75,15 @@ class fieldlist extends plugin\sql\fieldlist
         $this->virtual // virtual on need.
       );
       if($plugin instanceof \codename\architect\dbdoc\plugin\sql\sqlite\field) {
-        $partialStatements[] = $plugin->getPartialStatement();
+        $partialStatement = $plugin->getPartialStatement();
+        if($partialStatement) {
+          //
+          // getPartialStatement() might return a NULL value
+          // (e.g. if virtual/collection field)
+          // only add, if there's a value
+          //
+          $partialStatements[] = $partialStatement;
+        }
       }
     }
     return $partialStatements;

@@ -16,6 +16,16 @@ class field extends \codename\architect\dbdoc\plugin\sql\field
   {
     $definition = parent::getDefinition();
 
+    // field is a virtual field (collection)
+    if($definition['collection']) {
+      return $definition;
+    }
+
+    // cancel, if field is a virtual field
+    if($definition['datatype'] == 'virtual') {
+      return $definition;
+    }
+
     // required fields for SQL database adapters:
     // $definition['options']['db_data_type'] = $definition['options']['db_data_type'] ?? null;
     // $definition['options']['db_column_type'] = $definition['options']['db_column_type'] ?? null;
@@ -101,6 +111,15 @@ class field extends \codename\architect\dbdoc\plugin\sql\field
    */
   public function getPartialStatement() {
     $definition = $this->getDefinition();
+
+    if($definition['collection']) {
+      return null;
+    }
+
+    // cancel, if field is a virtual field
+    if($definition['datatype'] == 'virtual') {
+      return null;
+    }
 
     $attributes = array();
 
