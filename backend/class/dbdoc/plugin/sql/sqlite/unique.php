@@ -7,7 +7,8 @@ use codename\core\exception;
  * plugin for providing and comparing foreign field config in a model
  * @package architect
  */
-class unique extends \codename\architect\dbdoc\plugin\sql\unique {
+class unique extends \codename\architect\dbdoc\plugin\sql\unique
+  implements \codename\architect\dbdoc\plugin\sql\sqlite\partialStatementInterface {
 
   /**
    * @inheritDoc
@@ -60,8 +61,33 @@ class unique extends \codename\architect\dbdoc\plugin\sql\unique {
   /**
    * @inheritDoc
    */
+  public function getPartialStatement()
+  {
+    $definition = $this->getDefinition();
+
+    $uniqueStatements = [];
+    foreach($definition as $def) {
+      $constraintColumns = $def;
+      $columns = is_array($constraintColumns) ? implode(',', $constraintColumns) : $constraintColumns;
+      $constraintName = "unique_" . md5("{$this->adapter->schema}_{$this->adapter->model}_{$columns}");
+      $uniqueStatements[] = "CONSTRAINT {$constraintName} UNIQUE ({$columns})";
+    }
+
+    return $uniqueStatements;
+  }
+
+  /**
+   * @inheritDoc
+   */
   public function runTask(\codename\architect\dbdoc\task $task)
   {
+    // Disabled, NOTE:
+    // SQLite's unique constraint handling is faulty
+    // those have to be created during CREATE TABLE
+    // as CREATE UNIQUE INDEX ... afterwards does not produce
+    // a working constraint
+    return;
+
     $db = $this->getSqlAdapter()->db;
     if($task->name == "ADD_UNIQUE_CONSTRAINT") {
       /*

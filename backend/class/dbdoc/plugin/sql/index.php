@@ -45,10 +45,12 @@ class index extends \codename\architect\dbdoc\plugin\index {
     }
 
     // for mysql/sql, merge in unique keys!
-    $uniquePlugin = $this->adapter->getPluginInstance('unique', array(), true);
-    $uniqueKeys = $uniquePlugin->getDefinition();
-    foreach($uniqueKeys as $i => $uniqueKey) {
-      $definition[] = $uniqueKey;
+    if($this->adapter->getDriverCompat() == 'mysql') {
+      $uniquePlugin = $this->adapter->getPluginInstance('unique', array(), true);
+      $uniqueKeys = $uniquePlugin->getDefinition();
+      foreach($uniqueKeys as $i => $uniqueKey) {
+        $definition[] = $uniqueKey;
+      }
     }
 
     //

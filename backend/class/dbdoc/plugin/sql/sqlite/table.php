@@ -39,15 +39,6 @@ class table extends plugin\sql\table {
       $modificationTasks = [];
       $regularTasks = [];
 
-      // execute plugin for indices
-      $plugin = $this->adapter->getPluginInstance('index', array(), $this->virtual);
-      if($plugin != null) {
-        if(count($compareTasks = $plugin->Compare()) > 0) {
-          // change(s) detected
-          $regularTasks = array_merge($regularTasks, $compareTasks);
-        }
-      }
-
       // execute plugin for fulltext
       $plugin = $this->adapter->getPluginInstance('fulltext', array(), $this->virtual);
       if($plugin != null) {
@@ -62,7 +53,8 @@ class table extends plugin\sql\table {
       if($plugin != null) {
         if(count($compareTasks = $plugin->Compare()) > 0) {
           // change(s) detected
-          $regularTasks = array_merge($regularTasks, $compareTasks);
+          // CHANGED 2021-04-29: unique constraints now handled during table creation
+          $modificationTasks = array_merge($modificationTasks, $compareTasks);
         }
       }
 
@@ -147,6 +139,11 @@ class table extends plugin\sql\table {
 
     }
 
+    // execute plugin for indices
+    $plugin = $this->adapter->getPluginInstance('index', array(), $this->virtual);
+    if($plugin != null) {
+      $this->adapter->addToQueue($plugin);
+    }
 
     return $tasks;
   }
@@ -254,6 +251,13 @@ class table extends plugin\sql\table {
       if($foreignPlugin instanceof partialStatementInterface) {
         $foreignStatements = $foreignPlugin->getPartialStatement();
         $fieldStatements = array_merge($fieldStatements, $foreignStatements);
+      }
+
+      // unique key statements
+      $uniquePlugin = $this->adapter->getPluginInstance('unique');
+      if($uniquePlugin instanceof partialStatementInterface) {
+        $uniqueStatements = $uniquePlugin->getPartialStatement();
+        $fieldStatements = array_merge($fieldStatements, $uniqueStatements);
       }
 
 
