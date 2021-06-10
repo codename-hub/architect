@@ -57,16 +57,18 @@ class dbdoc  {
   protected const ARCHITECT_ENV_PREFIX = 'architect_';
 
   /**
-   * @param string      $app
-   * @param string      $vendor
-   * @param string|null $env    [override environment]
+   * @param string                      $app
+   * @param string                      $vendor
+   * @param string|null                 $env        [override environment by name]
+   * @param \codename\core\config|null  $envConfig  [override environment by config]
    */
-  public function __construct(string $app, string $vendor, ?string $env = null)
+  public function __construct(string $app, string $vendor, ?string $env = null, ?\codename\core\config $envConfig = null)
   {
     $this->errorstack = new errorstack('DBDOC');
     $this->app = $app;
     $this->vendor = $vendor;
     $this->env = $env ?? app::getEnv();
+    $this->environment = $envConfig ?? null;
     $this->init();
   }
 
@@ -161,7 +163,7 @@ class dbdoc  {
 
     // Load this file by default - plus inheritance
     // 'config/environment.json'
-    $this->environment = new \codename\core\config\json('config/environment.json', true, true, $foreignAppstack);;
+    $this->environment = $this->environment ?? new \codename\core\config\json('config/environment.json', true, true, $foreignAppstack);;
 
     // construct the prefixed environment config (used for deployment)
     $prefixedEnvironmentName = $this->getPrefixedEnvironmentName();
