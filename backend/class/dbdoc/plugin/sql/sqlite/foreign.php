@@ -50,6 +50,11 @@ class foreign extends \codename\architect\dbdoc\plugin\sql\foreign
 
     $foreignStatements = [];
     foreach($definition as $fkeyName => $def) {
+      // Omit multi-component Fkeys
+      if($def['optional'] ?? false) {
+        continue;
+      }
+
       $constraintName = "fkey_" . md5("{$this->adapter->model}_{$def['model']}_{$fkeyName}_fkey");
       $foreignStatements[] = "CONSTRAINT {$constraintName} FOREIGN KEY ({$fkeyName}) REFERENCES `{$def['schema']}.{$def['model']}` ({$def['key']})";
     }
