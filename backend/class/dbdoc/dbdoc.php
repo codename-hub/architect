@@ -57,14 +57,18 @@ class dbdoc  {
   protected const ARCHITECT_ENV_PREFIX = 'architect_';
 
   /**
-   * @param string $app
-   * @param string $vendor
+   * @param string                      $app
+   * @param string                      $vendor
+   * @param string|null                 $env        [override environment by name]
+   * @param \codename\core\config|null  $envConfig  [override environment by config]
    */
-  public function __construct(string $app, string $vendor)
+  public function __construct(string $app, string $vendor, ?string $env = null, ?\codename\core\config $envConfig = null)
   {
     $this->errorstack = new errorstack('DBDOC');
     $this->app = $app;
     $this->vendor = $vendor;
+    $this->env = $env ?? app::getEnv();
+    $this->environment = $envConfig ?? null;
     $this->init();
   }
 
@@ -94,6 +98,20 @@ class dbdoc  {
    */
   public function getVendor() : string {
     return $this->vendor;
+  }
+
+  /**
+   * [protected description]
+   * @var string
+   */
+  protected $env;
+
+  /**
+   * [getEnv description]
+   * @return string [description]
+   */
+  public function getEnv() : string {
+    return $this->env;
   }
 
   /**
@@ -145,7 +163,7 @@ class dbdoc  {
 
     // Load this file by default - plus inheritance
     // 'config/environment.json'
-    $this->environment = new \codename\core\config\json('config/environment.json', true, true, $foreignAppstack);;
+    $this->environment = $this->environment ?? new \codename\core\config\json('config/environment.json', true, true, $foreignAppstack);;
 
     // construct the prefixed environment config (used for deployment)
     $prefixedEnvironmentName = $this->getPrefixedEnvironmentName();
@@ -202,7 +220,7 @@ class dbdoc  {
    * @return string [description]
    */
   protected function getPrefixedEnvironmentName() : string {
-    return self::ARCHITECT_ENV_PREFIX . app::getEnv();
+    return self::ARCHITECT_ENV_PREFIX . $this->env;
   }
 
   /**
@@ -210,7 +228,8 @@ class dbdoc  {
    * @var [type]
    */
   protected static $driverTranslation = array(
-    'mysql' => 'sql\\mysql'
+    'mysql' => 'sql\\mysql',
+    'sqlite' => 'sql\\sqlite'
   );
 
   /**
@@ -227,7 +246,7 @@ class dbdoc  {
    * @param  \codename\architect\config\environment     $env    [description]
    * @return \codename\architect\dbdoc\modeladapter         [description]
    */
-  protected function getModelAdapter(string $schema, string $model, array $config, \codename\architect\config\environment $env) {
+  public function getModelAdapter(string $schema, string $model, array $config, \codename\architect\config\environment $env) {
 
     // validate model configuration
     if(count($errors = app::getValidator('structure_config_model')->reset()->validate($config)) > 0) {

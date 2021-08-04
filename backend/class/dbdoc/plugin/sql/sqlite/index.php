@@ -1,5 +1,5 @@
 <?php
-namespace codename\architect\dbdoc\plugin\sql;
+namespace codename\architect\dbdoc\plugin\sql\sqlite;
 use codename\architect\dbdoc\task;
 
 /**
@@ -12,60 +12,8 @@ use codename\architect\dbdoc\task;
  * plugin for providing and comparing index / indices field config in a model
  * @package architect
  */
-class index extends \codename\architect\dbdoc\plugin\index {
+class index extends \codename\architect\dbdoc\plugin\sql\index {
   use \codename\architect\dbdoc\modeladapter\modeladapterGetSqlAdapter;
-
-  /**
-   * @inheritDoc
-   */
-  public function getDefinition()
-  {
-    // "index" specified in model definition
-    $definition = parent::getDefinition();
-
-    //
-    // NOTE: Bad issue on 2019-02-20:
-    // Index Plugin wants to remove Indexes created
-    // for Foreign & Unique Keys, as well as Primary Keys
-    // after the change in structure retrieval (constraint_name is null)
-    // therefore, we have to check those keys, too.
-    //
-    //
-    // for mysql/sql, merge in foreign keys!
-    $foreignPlugin = $this->adapter->getPluginInstance('foreign', array(), true);
-    $foreignKeys = $foreignPlugin->getDefinition();
-    foreach($foreignKeys as $fkey => $fkeyConfig) {
-      if(is_array($fkeyConfig['key'])) {
-        // multi-component foreign key - $fkey is NOT a field name, use 'key'-keys
-        $definition[] = array_keys($fkeyConfig['key']);
-      } else {
-        // just use the foreign key definition name (this is the current table's key to be used)
-        $definition[] = $fkey;
-      }
-    }
-
-    // for mysql/sql, merge in unique keys!
-    if($this->adapter->getDriverCompat() == 'mysql') {
-      $uniquePlugin = $this->adapter->getPluginInstance('unique', array(), true);
-      $uniqueKeys = $uniquePlugin->getDefinition();
-      foreach($uniqueKeys as $i => $uniqueKey) {
-        $definition[] = $uniqueKey;
-      }
-    }
-
-    //
-    // make unique!
-    // otherwise, we may get duplicates
-    // NOTE:
-    // this may cause a problem, when creating a foreign key at the same time?
-    //
-    $definition = array_values(array_unique($definition, SORT_REGULAR));
-
-    // print_r($definition);
-    // echo("<br>");
-
-    return $definition;
-  }
 
   /**
    * @inheritDoc
@@ -93,12 +41,28 @@ class index extends \codename\architect\dbdoc\plugin\index {
         }, $struc
       );
 
+      // $tasks[] = $this->createTask(task::TASK_TYPE_INFO, "FOUND_INDEXES", array(
+      //   'structure' => $structure
+      // ));
+
       // if($fieldsOnly && !in_array($indexColumnNames, $fieldsOnly, true)) {
       //   echo "Skipping ".var_export($indexColumnNames, true)." because not contained in fieldsOnly ".var_export($fieldsOnly, true)."<br>";
       //   continue;
       // }
       // reduce to string, if only one element
       $indexColumnNames = count($indexColumnNames) == 1 ? $indexColumnNames[0] : $indexColumnNames;
+      //
+      // if($indexColumnNames === 'productpricing_product_id') {
+      //   print_r($definition);
+      //   print_r($struc);
+      //   die();
+      // }
+
+      // if($strucName == 'index_5cda4449ac0c1f3b3455772af51d07ac' || $indexColumnNames == 'productpricing_product_id') {
+      //   print_r($indexColumnNames);
+      //   print_r($definition);
+      //   die();
+      // }
 
       // compare!
       if(in_array($indexColumnNames, $definition)) {
@@ -115,7 +79,7 @@ class index extends \codename\architect\dbdoc\plugin\index {
         // echo("</pre>");
 
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "REMOVE_INDEX", array(
-          'index_name' => $strucName
+          'index_name' => $strucName,
         ));
       }
     }
@@ -150,6 +114,7 @@ class index extends \codename\architect\dbdoc\plugin\index {
 
       // DEBUG
       // echo("-- => invalid/unequal, add to missing.<br>");
+      // print_r($d);
       $missing[] = $d;
     });
 
@@ -160,15 +125,29 @@ class index extends \codename\architect\dbdoc\plugin\index {
       //   continue;
       // }
 
+      $columns = is_array($def) ? implode(',', $def) : $def;
+      $indexName = 'index_' . md5("{$this->adapter->schema}.{$this->adapter->model}-".$columns); // prepend schema+model
+
+      // if($indexName == 'index_5cda4449ac0c1f3b3455772af51d07ac') {
+      //   print_r($def);
+      //   print_r($columns);
+      //   print_r($definition);
+      //   die();
+      // }
+
       if(is_array($def)) {
         // multi-column constraint
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_INDEX", array(
-          'index_columns' => $def
+          'index_name' => $indexName,
+          'index_columns' => $def,
+          // 'raw_columns' =>$columns
         ));
       } else {
         // single-column constraint
         $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_INDEX", array(
-          'index_columns' => $def
+          'index_name' => $indexName,
+          'index_columns' => $def,
+          // 'raw_columns' =>$columns
         ));
       }
     }
@@ -204,19 +183,20 @@ class index extends \codename\architect\dbdoc\plugin\index {
 
     $db = $this->getSqlAdapter()->db;
 
-    $db->query(
-      "SELECT DISTINCT tc.table_schema, tc.table_name, s.index_name, tc.constraint_name, s.column_name, s.seq_in_index
-      FROM information_schema.statistics s
-      LEFT OUTER JOIN information_schema.table_constraints tc
-          ON tc.table_schema = s.table_schema
-             AND tc.table_name = s.table_name
-             AND s.index_name = tc.constraint_name
-      WHERE 0 = 0
-            AND s.index_name NOT IN ('PRIMARY')
-            AND s.table_schema = '{$this->adapter->schema}'
-            AND s.table_name = '{$this->adapter->model}'
-            AND s.index_type != 'FULLTEXT'"
-    );
+    // $db->query(
+    //   "SELECT DISTINCT tc.table_schema, tc.table_name, s.index_name, tc.constraint_name, s.column_name, s.seq_in_index
+    //   FROM information_schema.statistics s
+    //   LEFT OUTER JOIN information_schema.table_constraints tc
+    //       ON tc.table_schema = s.table_schema
+    //          AND tc.table_name = s.table_name
+    //          AND s.index_name = tc.constraint_name
+    //   WHERE 0 = 0
+    //         AND s.index_name NOT IN ('PRIMARY')
+    //         AND s.table_schema = '{$this->adapter->schema}'
+    //         AND s.table_name = '{$this->adapter->model}'
+    //         AND s.index_type != 'FULLTEXT'"
+    // );
+    $db->query("PRAGMA index_list('{$this->adapter->schema}.{$this->adapter->model}')");
 
     //
     // NOTE: we removed the following WHERE-component:
@@ -234,25 +214,56 @@ class index extends \codename\architect\dbdoc\plugin\index {
 
     // perform grouping
     foreach($allIndices as $index) {
-      if(array_key_exists($index['index_name'], $indexGroups)) {
-        // match to existing group
-        foreach($indexGroups as $groupName => $group) {
-          if($index['index_name'] == $groupName) {
-            $indexGroups[$groupName][] = $index;
-            break;
-          }
-        }
-      } else {
-        // create new group
-        $indexGroups[$index['index_name']][] = $index;
+      // Compat mapping to generic index plugin
+      $index['index_name'] = $index['name'];
+
+      // if($index['name'] == 'index_e7760f32be0d18cb84d382d6b705b5b1') {
+      //   print_r($index);
+      // }
+
+      $db->query("PRAGMA index_info('{$index['index_name']}')");
+      $indexInfoRes = $db->getResult();
+
+      // $indexInfo = $indexInfoRes[0];
+      // print_r($index);
+      // print_r($indexInfo);
+      // die();
+      // if($index['name'] == 'index_e7760f32be0d18cb84d382d6b705b5b1') {
+      //   print_r($indexInfoRes);
+      // }
+
+      foreach($indexInfoRes as $indexColumn) {
+        $indexGroups[$index['index_name']][] = array_merge(
+          $index,
+          $indexColumn,
+          [ 'column_name' => $indexColumn['name'] ]
+        );
       }
+
+      // print_r($indexInfo);
+
+      // if(array_key_exists($index['index_name'], $indexGroups)) {
+      //   // match to existing group
+      //   foreach($indexGroups as $groupName => $group) {
+      //     if($index['index_name'] == $groupName) {
+      //       $indexGroups[$groupName][] = $index;
+      //       break;
+      //     }
+      //   }
+      // } else {
+      //   // create new group
+      //   $indexGroups[$index['index_name']][] = $index;
+      // }
     }
+
+    // print_r($indexGroups);
+    // die();
 
     $sortedIndexGroups = [];
     // sort!
     foreach($indexGroups as $groupName => $group) {
       usort($group, function($left, $right) {
-        return $left['seq_in_index'] > $right['seq_in_index'];
+        return $left['seqno'] > $right['seqno'];
       });
       $sortedIndexGroups[$groupName] = $group;
     }
@@ -276,10 +287,10 @@ class index extends \codename\architect\dbdoc\plugin\index {
 
       $indexColumns = $task->data->get('index_columns');
       $columns = is_array($indexColumns) ? implode(',', $indexColumns) : $indexColumns;
-      $indexName = 'index_' . md5($columns);
+      $indexName = 'index_' . md5("{$this->adapter->schema}.{$this->adapter->model}-".$columns);// prepend schema+model
 
       $db->query(
-       "CREATE INDEX {$indexName} ON {$this->adapter->schema}.{$this->adapter->model} ({$columns});"
+       "CREATE INDEX {$indexName} ON '{$this->adapter->schema}.{$this->adapter->model}' ({$columns});"
       );
     }
 
@@ -288,8 +299,9 @@ class index extends \codename\architect\dbdoc\plugin\index {
       // simply drop index by index_name
       $indexName = $task->data->get('index_name');
 
+
       $db->query(
-       "DROP INDEX IF EXISTS {$indexName} ON {$this->adapter->schema}.{$this->adapter->model};"
+       "DROP INDEX IF EXISTS {$indexName};" // ON '{$this->adapter->schema}.{$this->adapter->model}'
       );
     }
   }
