@@ -36,7 +36,7 @@ class field extends \codename\architect\dbdoc\plugin\sql\field
 
     // Override regular SQL-style to match SQLite's requirements
     // at least for datetime-fields with a default value
-    if($definition['datatype'] == 'text_timestamp' && $definition['default'] == 'current_timestamp()') {
+    if($definition['datatype'] == 'text_timestamp' && (($definition['default'] ?? null) == 'current_timestamp()')) {
       $definition['default'] = 'CURRENT_TIMESTAMP';
     }
 
@@ -68,6 +68,7 @@ class field extends \codename\architect\dbdoc\plugin\sql\field
       $r = $res[0];
       $r['column_type'] = $r['type'];
       $r['column_default'] = $r['dflt_value'];
+      $r['is_nullable'] = $r['notnull'] != 1; // emulate 'is_nullable' key
       return $r;
     }
     return null;
@@ -128,7 +129,7 @@ class field extends \codename\architect\dbdoc\plugin\sql\field
       $attributes[] = 'PRIMARY KEY';
     }
 
-    if($definition['auto_increment']) {
+    if($definition['auto_increment'] ?? false) {
       // support for single-column PKEYs
       $attributes[] = 'AUTOINCREMENT';
     }
