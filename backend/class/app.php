@@ -109,22 +109,61 @@ class app extends \codename\core\app {
    */
   public static function getSiblingApps() : array {
 
-    // for now, we're relying on our current vendor name for finding siblings
-    $appdirs = app::getFilesystem()->dirList(CORE_VENDORDIR . app::getVendor());
+    $vendorDirs = app::getFilesystem()->dirList(CORE_VENDORDIR);
+    $appPaths = [];
+
+    foreach($vendorDirs as $vendorDir) {
+      // for now, we're relying on our current vendor name for finding siblings
+      $paths = app::getFilesystem()->dirList(CORE_VENDORDIR . $vendorDir);
+      foreach($paths as $p) {
+        if(app::getFilesystem()->isDirectory(CORE_VENDORDIR . $vendorDir . '/' . $p)) {
+          $appPaths[] = [ $vendorDir, $p ];
+        }
+      }
+    }
 
     // The base app class, reflected.
-    $baseReflectionClass = new \ReflectionClass( app::getVendor() . '\\core\\app' );
+    $baseReflectionClass = new \ReflectionClass( '\\codename\\core\\app' );
 
     $apps = array();
 
-    foreach($appdirs as $appdir) {
-      if(app::getFilesystem()->isDirectory(CORE_VENDORDIR . app::getVendor() . '/' . $appdir)) {
+    foreach($appPaths as $pathComponents) {
+
+      $vendordir = $pathComponents[0];
+      $appdir = $pathComponents[1];
+
+      if(app::getFilesystem()->isDirectory($dir = CORE_VENDORDIR . $vendordir . '/' . $appdir)) {
 
         // exclude this app and the core framework.
         if($appdir != 'architect' && $appdir != 'core') {
 
-          // try to look for app class
-          $classname = app::getVendor() . '\\' . $appdir . '\\app';
+          $appname = null;
+          $vendorname = null;
+          $probeNamespace = null;
+
+          // analyze composer.json, if available
+          if(file_exists($composerJson = $dir . '/composer.json')) {
+            $composerData = @json_decode(file_get_contents($composerJson), true);
+            $probeNamespace = array_keys($composerData['autoload']['psr-4'] ?? [])[0] ?? $probeNamespace;
+
+            // assume vendor/project (composer-style)
+            // to define the core-app identifier (vendor and app)
+            if($names = explode('/', $composerData['name'] ?? '')) {
+              $vendorname = $names[0];
+              $appname = $names[1];
+            }
+          } else {
+            // not a composer-loadable directory
+            continue;
+          }
+
+          if($probeNamespace) {
+            // try to look for app class
+            $classname = $probeNamespace . 'app';
+          } else {
+            $classname = $vendordir . '\\' . $appdir . '\\app';
+          }
+
           if(class_exists($classname)) {
 
             // testing for inheritance from $baseReflectionClass
@@ -133,8 +172,9 @@ class app extends \codename\core\app {
             if($testReflectionClass->isSubclassOf($baseReflectionClass)) {
               // compatible sibling app found.
               $apps[] = array(
-                'vendor' => app::getVendor(),
-                'app' => $appdir
+                'vendor'  => $vendorname ?? $vendordir,
+                'app'     => $appname ?? $appdir,
+                'homedir' => $vendordir . '/' . $appdir
               );
             }
           }
