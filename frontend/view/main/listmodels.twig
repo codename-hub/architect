@@ -10,25 +10,30 @@
     <a href="{{ url('main') }}">Back to App List</a>
   </li>
   <li>
-    <a href="{{ url('main/listmodels',
-      {
-        'filter' : request.getData('filter')
-      }
-      ) }}">Refresh</a>
+    <a
+      href="{{ url('main/listmodels',
+        {
+          'filter' : request.getData('filter')
+        }
+      ) }}"
+    >Refresh
+    </a>
   </li>
   <br>
   {% for tasktype_name, tasktype_value in response.getData('dbdoc_stats>available_task_types') %}
-  <li>
-    <a href="{{ url('main/listmodels',
-      {
-        'filter' : request.getData('filter'),
-        'exec': 1,
-        'exec_tasks': [
-          tasktype_value
-        ]
-      }
-      ) }}">Execute {{tasktype_name}}</a>
-  </li>
+    <li>
+      <a
+        href="{{ url('main/listmodels',
+          {
+            'filter' : request.getData('filter'),
+            'exec': 1,
+            'exec_tasks': [
+            tasktype_value
+          ]
+          }
+        ) }}"
+      >Execute {{ tasktype_name }}</a>
+    </li>
   {% endfor %}
 </ul>
 
@@ -37,23 +42,29 @@
 <h3>Available Tasks</h3>
 <ul>
   {% for task in response.getData('dbdoc_stats>available_tasks') %}
-  <li>
-    Task [{{ task.getTaskTypeName() }}] [{{ task.adapter.getIdentifier() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
-  </li>
+    <li>
+      Task [{{ task.getTaskTypeName() }}] [{{ task.adapter.getIdentifier() }}]
+      <em>{{ task.plugin }}</em>
+      ::
+      <strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
+    </li>
   {% endfor %}
 </ul>
 
 <hr>
 
 <h3>Models</h3>
-{{ response.getData('table')|raw}}
+{{ response.getData('table')|raw }}
 <hr>
 
 <h3>Statistics</h3>
 <ul>
   {% for task in response.getData('dbdoc_stats>executed_tasks') %}
-  <li>
-    Task [{{ task.getTaskTypeName() }}] [{{ task.adapter.getIdentifier() }}] <em>{{ task.plugin }}</em>::<strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
-  </li>
+    <li>
+      Task [{{ task.getTaskTypeName() }}] [{{ task.adapter.getIdentifier() }}]
+      <em>{{ task.plugin }}</em>
+      ::
+      <strong>{{ task.name }}</strong> {{ print_r(task.data.get()) }}
+    </li>
   {% endfor %}
 </ul>

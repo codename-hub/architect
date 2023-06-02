@@ -1,42 +1,42 @@
 {
-	"defaultcontext": "main",
-	"defaulttemplateengine" : "default",
-	"defaulttemplate": "blank",
-	"context": {
-		"main": {
-			"template" : "basic",
-			"defaultview": "default",
-			"templateengine": "default",
-			"view": {
-				"default": {
-					"public": true
-				},
-				"listapps": {
-					"public": true
-				},
-				"listmodels": {
-					"public": true
-				}
-			}
-		},
-		"deployment": {
-			"template" : "basic",
-			"defaultview": "default",
-			"templateengine": "default",
-			"view": {
-				"default" : {
-					"public": true
-				},
-				"apps": {
-					"public": true
-				},
-				"tasks": {
-					"public": true
-				},
-				"run": {
-					"public": true
-				}
-			}
-		}
+  "defaultcontext": "main",
+  "defaulttemplateengine": "default",
+  "defaulttemplate": "blank",
+  "context": {
+    "main": {
+      "template": "basic",
+      "defaultview": "default",
+      "templateengine": "default",
+      "view": {
+        "default": {
+          "public": true
+        },
+        "listapps": {
+          "public": true
+        },
+        "listmodels": {
+          "public": true
+        }
+      }
+    },
+    "deployment": {
+      "template": "basic",
+      "defaultview": "default",
+      "templateengine": "default",
+      "view": {
+        "default": {
+          "public": true
+        },
+        "apps": {
+          "public": true
+        },
+        "tasks": {
+          "public": true
+        },
+        "run": {
+          "public": true
+        }
+      }
+    }
   }
 }

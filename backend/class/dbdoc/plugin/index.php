@@ -1,4 +1,5 @@
 <?php
+
 namespace codename\architect\dbdoc\plugin;
 
 /**
@@ -11,14 +12,13 @@ namespace codename\architect\dbdoc\plugin;
  * plugin for providing and comparing index / indices field config in a model
  * @package architect
  */
-abstract class index extends \codename\architect\dbdoc\plugin\modelPrefix {
-
-  /**
-   * @inheritDoc
-   */
-  public function getDefinition()
-  {
-    return $this->adapter->config->get('index') ?? array();
-  }
-
+abstract class index extends modelPrefix
+{
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefinition(): array
+    {
+        return $this->adapter->config->get('index') ?? [];
+    }
 }

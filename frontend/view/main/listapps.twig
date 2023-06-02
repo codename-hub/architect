@@ -8,11 +8,13 @@
   </thead>
   <tbody>
     {% for app in response.getData('apps') %}
-        <tr>
-            <td>{{ app.vendor }}</td>
-            <td>{{ app.app }}</td>
-            <td><a href="{{ url('main/listmodels', { 'filter' : { 'vendor' : app.vendor, 'app' : app.app } }) }}">Details</a></td>
-        </tr>
+      <tr>
+        <td>{{ app.vendor }}</td>
+        <td>{{ app.app }}</td>
+        <td>
+          <a href="{{ url('main/listmodels', { 'filter' : { 'vendor' : app.vendor, 'app' : app.app } }) }}">Details</a>
+        </td>
+      </tr>
     {% endfor %}
   </tbody>
 </table>

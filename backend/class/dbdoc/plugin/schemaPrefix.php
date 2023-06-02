@@ -1,4 +1,5 @@
 <?php
+
 namespace codename\architect\dbdoc\plugin;
 
 /**
@@ -6,14 +7,13 @@ namespace codename\architect\dbdoc\plugin;
  * mostly just for correct task prefixing
  * @package architect
  */
-abstract class schemaPrefix extends \codename\architect\dbdoc\plugin\connectionPrefix {
-
-  /**
-   * @inheritDoc
-   */
-  protected function getTaskIdentifierPrefix(): string
-  {
-    return parent::getTaskIdentifierPrefix() . "{$this->adapter->schema}_";
-  }
-
+abstract class schemaPrefix extends connectionPrefix
+{
+    /**
+     * {@inheritDoc}
+     */
+    protected function getTaskIdentifierPrefix(): string
+    {
+        return parent::getTaskIdentifierPrefix() . "{$this->adapter->schema}_";
+    }
 }
