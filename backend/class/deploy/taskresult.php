@@ -1,14 +1,17 @@
 <?php
+
 namespace codename\architect\deploy;
+
+use codename\core\config;
 
 /**
  * deployment task result object
  */
-abstract class taskresult extends \codename\core\config {
-
-  /**
-   * [formatAsString description]
-   * @return string [description]
-   */
-  public abstract function formatAsString() : string;
+abstract class taskresult extends config
+{
+    /**
+     * [formatAsString description]
+     * @return string [description]
+     */
+    abstract public function formatAsString(): string;
 }

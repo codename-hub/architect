@@ -1,70 +1,86 @@
 <?php
+
 namespace codename\architect\model\schematic\sql;
+
+use codename\core\config;
+use codename\core\config\json;
+use codename\core\exception;
+use codename\core\model;
+use codename\core\model\schematic\sql;
+use ReflectionException;
 
 /**
  * dynamic SQL model
  */
-class dynamic extends \codename\core\model\schematic\sql {
+class dynamic extends sql
+{
+    /**
+     * workaround to get db from another appstack
+     * @var callable
+     */
+    protected $getDbCallback = null;
 
-  /**
-   * @inheritDoc
-   */
-  public function __CONSTRUCT(array $modeldata = array(), callable $getDbCallback)
-  {
-    $this->getDbCallback = $getDbCallback;
-    parent::__CONSTRUCT($modeldata);
-  }
-
-  /**
-   * loads a new config file (uncached)
-   * @return \codename\core\config
-   */
-  protected function loadConfig() : \codename\core\config {
-    if($this->modeldata->exists('appstack')) {
-      return new \codename\core\config\json('config/model/' . $this->schema . '_' . $this->table . '.json', true, false, $this->modeldata->get('appstack'));
-    } else {
-      return new \codename\core\config\json('config/model/' . $this->schema . '_' . $this->table . '.json', true);
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public function setConfig(string $connection = null, string $schema, string $table) : \codename\core\model {
-
-    $this->schema = $schema;
-    $this->table = $table;
-
-    if(!$this->config) {
-      $this->config = $this->loadConfig();
+    /**
+     * @param array $modeldata
+     * @param callable $getDbCallback
+     */
+    public function __construct(array $modeldata, callable $getDbCallback)
+    {
+        $this->getDbCallback = $getDbCallback;
+        parent::__construct($modeldata);
     }
 
-    // Connection now defined in model .json
-    if($this->config->exists("connection")) {
-      $connection = $this->config->get("connection");
-    } else {
-      $connection = 'default';
+    /**
+     * @param string|null $connection
+     * @param string $schema
+     * @param string $table
+     * @return model
+     * @throws ReflectionException
+     * @throws exception
+     */
+    public function setConfig(?string $connection, string $schema, string $table): model
+    {
+        $this->schema = $schema;
+        $this->table = $table;
+
+        if (!$this->config) {
+            $this->config = $this->loadConfig();
+        }
+
+        // Connection now defined in model .json
+        if ($this->config->exists("connection")) {
+            $connection = $this->config->get("connection");
+        } else {
+            $connection = 'default';
+        }
+
+        $getDbCallback = $this->getDbCallback;
+        $this->db = $getDbCallback($connection, $this->storeConnection);
+
+        return $this;
     }
 
-    $getDbCallback = $this->getDbCallback;
-    $this->db = $getDbCallback($connection, $this->storeConnection);
+    /**
+     * loads a new config file (uncached)
+     * @return config
+     * @throws ReflectionException
+     * @throws exception
+     */
+    protected function loadConfig(): config
+    {
+        if ($this->modeldata->exists('appstack')) {
+            return new json('config/model/' . $this->schema . '_' . $this->table . '.json', true, false, $this->modeldata->get('appstack'));
+        } else {
+            return new json('config/model/' . $this->schema . '_' . $this->table . '.json', true);
+        }
+    }
 
-    return $this;
-  }
-
-  /**
-   * workaround to get db from another appstack
-   * @var callable
-   */
-  protected $getDbCallback = null;
-
-  /**
-   * @inheritDoc
-   */
-  protected function getType() : string
-  {
-    // TODO: make dynamic, based on ENV setting!
-    return 'mysql';
-  }
-
+    /**
+     * {@inheritDoc}
+     */
+    protected function getType(): string
+    {
+        // TODO: make dynamic, based on ENV setting!
+        return 'mysql';
+    }
 }

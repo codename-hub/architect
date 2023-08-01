@@ -1,6 +1,11 @@
 <?php
+
 namespace codename\architect\dbdoc\plugin\sql;
+
+use codename\architect\dbdoc\modeladapter\modeladapterGetSqlAdapter;
 use codename\architect\dbdoc\task;
+use codename\core\exception;
+use ReflectionException;
 
 /**
  * we may add some kind of loading prevention, if some classes are not loaded/undefined
@@ -12,189 +17,156 @@ use codename\architect\dbdoc\task;
  * plugin for providing and comparing fulltext / indices field config in a model
  * @package architect
  */
-class fulltext extends \codename\architect\dbdoc\plugin\fulltext {
-  use \codename\architect\dbdoc\modeladapter\modeladapterGetSqlAdapter;
+class fulltext extends \codename\architect\dbdoc\plugin\fulltext
+{
+    use modeladapterGetSqlAdapter;
 
-  /**
-   * @inheritDoc
-   */
-  public function getDefinition() {
-    // "fulltext" specified in model definition
-    $definition = parent::getDefinition();
+    /**
+     * {@inheritDoc}
+     * @return array
+     * @throws ReflectionException
+     * @throws exception
+     */
+    public function Compare(): array
+    {
+        $tasks = [];
 
-    // print_r($definition);
-    // echo("<br>");
+        $definition = $this->getDefinition();
 
-    return $definition;
-  }
+        // virtual = assume empty structure
+        $structure = $this->virtual ? [] : $this->getStructure();
 
-  /**
-   * @inheritDoc
-   */
-  public function Compare() : array {
-    $tasks = array();
+        $valid = [];
+        $missing = [];
 
-    // return $tasks;
+        foreach ($structure as $strucName => $struc) {
+            // get ordered (?) column_names
+            $fulltextColumnNames = array_map(
+                function ($spec) {
+                    return $spec['column_name'];
+                },
+                $struc
+            );
 
-    $definition = $this->getDefinition();
+            // reduce to string, if only one element
+            $fulltextColumnNames = count($fulltextColumnNames) == 1 ? $fulltextColumnNames[0] : $fulltextColumnNames;
 
-    // virtual = assume empty structure
-    $structure = $this->virtual ? array() : $this->getStructure();
-
-    $valid = array();
-    $missing = array();
-    $toomuch = array();
-
-    foreach($structure as $strucName => $struc) {
-
-      // get ordered (?) column_names
-      $fulltextColumnNames = array_map(
-        function($spec) {
-          return $spec['column_name'];
-        }, $struc
-      );
-
-      // reduce to string, if only one element
-      $fulltextColumnNames = count($fulltextColumnNames) == 1 ? $fulltextColumnNames[0] : $fulltextColumnNames;
-
-      // compare!
-      if(in_array($fulltextColumnNames, $definition)) {
-        // constraint exists and is correct
-        $valid[] = $fulltextColumnNames;
-      } else {
-        $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "REMOVE_FULLTEXT", array(
-          'fulltext_name' => $strucName
-        ));
-      }
-    }
-
-    // determine missing constraints
-    array_walk($definition, function($d) use ($valid, &$missing) {
-      foreach($valid as $v) {
-        // DEBUG
-        // echo("-- Compare ".var_export($d,true)." ".gettype($d)." <=> ".var_export($v, true)." ".gettype($v)." <br>".chr(10));
-        if(gettype($v) == gettype($d)) {
-          if($d == $v) {
-            // DEBUG
-            // echo("-- => valid/equal, skipping.<br>");
-            return;
-          }
-        } else {
-          // DEBUG
-          // echo("-- => unequal types, skipping.<br>");
-          continue;
+            // compare!
+            if (in_array($fulltextColumnNames, $definition)) {
+                // constraint exists and is correct
+                $valid[] = $fulltextColumnNames;
+            } else {
+                $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "REMOVE_FULLTEXT", [
+                  'fulltext_name' => $strucName,
+                ]);
+            }
         }
-      }
 
-      // DEBUG
-      // echo("-- => invalid/unequal, add to missing.<br>");
-      $missing[] = $d;
-    });
+        // determine missing constraints
+        array_walk($definition, function ($d) use ($valid, &$missing) {
+            foreach ($valid as $v) {
+                if (gettype($v) == gettype($d)) {
+                    if ($d == $v) {
+                        return;
+                    }
+                }
+            }
 
-    foreach($missing as $def) {
+            $missing[] = $d;
+        });
 
-      if(is_array($def)) {
-        // multi-column constraint
-        $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_FULLTEXT", array(
-          'fulltext_columns' => $def
-        ));
-      } else {
-        // single-column constraint
-        $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_FULLTEXT", array(
-          'fulltext_columns' => $def
-        ));
-      }
+        foreach ($missing as $def) {
+            $tasks[] = $this->createTask(task::TASK_TYPE_SUGGESTED, "ADD_FULLTEXT", [
+              'fulltext_columns' => $def,
+            ]);
+        }
+
+        return $tasks;
     }
 
-    return $tasks;
-  }
+    /**
+     * {@inheritDoc}
+     * @return array
+     * @throws ReflectionException
+     * @throws exception
+     */
+    public function getStructure(): array
+    {
+        $db = $this->getSqlAdapter()->db;
 
-  /**
-   * @inheritDoc
-   */
-  public function getStructure() {
-
-    $db = $this->getSqlAdapter()->db;
-
-    $db->query(
-      "SELECT DISTINCT tc.table_schema, tc.table_name, s.index_name, tc.constraint_name, s.column_name, s.seq_in_index
+        $db->query(
+            "SELECT DISTINCT tc.table_schema, tc.table_name, s.index_name, tc.constraint_name, s.column_name, s.seq_in_index
       FROM information_schema.statistics s
       LEFT OUTER JOIN information_schema.table_constraints tc
           ON tc.table_schema = s.table_schema
              AND tc.table_name = s.table_name
              AND s.index_name = tc.constraint_name
-      WHERE 0 = 0
-            AND s.index_name NOT IN ('PRIMARY')
+      WHERE s.index_name NOT IN ('PRIMARY')
             AND s.table_schema = '{$this->adapter->schema}'
             AND s.table_name = '{$this->adapter->model}'
             AND s.index_type = 'FULLTEXT'"
-    );
+        );
 
-    $allFulltext = $db->getResult();
+        $allFulltext = $db->getResult();
 
-    // echo '<pre>';
-    // print_r($allFulltext);
-    // echo '</pre>';
+        $fulltextGroups = [];
 
-    $fulltextGroups = [];
-
-    // perform grouping
-    foreach($allFulltext as $fulltext) {
-      if(array_key_exists($fulltext['index_name'], $fulltextGroups)) {
-        // match to existing group
-        foreach($fulltextGroups as $groupName => $group) {
-          if($fulltext['index_name'] == $groupName) {
-            $fulltextGroups[$groupName][] = $fulltext;
-            break;
-          }
+        // perform grouping
+        foreach ($allFulltext as $fulltext) {
+            if (array_key_exists($fulltext['index_name'], $fulltextGroups)) {
+                // match to existing group
+                foreach ($fulltextGroups as $groupName => $group) {
+                    if ($fulltext['index_name'] == $groupName) {
+                        $fulltextGroups[$groupName][] = $fulltext;
+                        break;
+                    }
+                }
+            } else {
+                // create new group
+                $fulltextGroups[$fulltext['index_name']][] = $fulltext;
+            }
         }
-      } else {
-        // create new group
-        $fulltextGroups[$fulltext['index_name']][] = $fulltext;
-      }
+
+        $sortedfulltextGroups = [];
+        // sort!
+        foreach ($fulltextGroups as $groupName => $group) {
+            usort($group, function ($left, $right) {
+                return $left['seq_in_index'] > $right['seq_in_index'];
+            });
+            $sortedfulltextGroups[$groupName] = $group;
+        }
+
+        return $sortedfulltextGroups;
     }
 
-    $sortedfulltextGroups = [];
-    // sort!
-    foreach($fulltextGroups as $groupName => $group) {
-      usort($group, function($left, $right) {
-        return $left['seq_in_index'] > $right['seq_in_index'];
-      });
-      $sortedfulltextGroups[$groupName] = $group;
+
+    /**
+     * {@inheritDoc}
+     * @param task $task
+     * @throws ReflectionException
+     * @throws exception
+     */
+    public function runTask(task $task): void
+    {
+        $db = $this->getSqlAdapter()->db;
+
+        if ($task->name == "ADD_FULLTEXT") {
+            $fulltextColumns = $task->data->get('fulltext_columns');
+            $columns = is_array($fulltextColumns) ? implode(',', $fulltextColumns) : $fulltextColumns;
+            $fulltextName = 'fulltext_' . md5($columns);
+
+            $db->query(
+                "CREATE FULLTEXT INDEX $fulltextName ON {$this->adapter->schema}.{$this->adapter->model} ($columns) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;"
+            );
+        }
+
+        if ($task->name == "REMOVE_FULLTEXT") {
+            // simply drop fulltext by fulltext_name
+            $fulltextName = $task->data->get('fulltext_name');
+
+            $db->query(
+                "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} DROP INDEX $fulltextName;"
+            );
+        }
     }
-
-    return $sortedfulltextGroups;
-  }
-
-
-
-  /**
-   * @inheritDoc
-   */
-  public function runTask(\codename\architect\dbdoc\task $task)
-  {
-    $db = $this->getSqlAdapter()->db;
-
-    if($task->name == "ADD_FULLTEXT") {
-
-      $fulltextColumns = $task->data->get('fulltext_columns');
-      $columns = is_array($fulltextColumns) ? implode(',', $fulltextColumns) : $fulltextColumns;
-      $fulltextName = 'fulltext_' . md5($columns);
-
-      $db->query(
-       "CREATE FULLTEXT INDEX {$fulltextName} ON {$this->adapter->schema}.{$this->adapter->model} ({$columns}) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;"
-      );
-    }
-
-    if($task->name == "REMOVE_FULLTEXT") {
-
-      // simply drop fulltext by fulltext_name
-      $fulltextName = $task->data->get('fulltext_name');
-
-      $db->query(
-        "ALTER TABLE {$this->adapter->schema}.{$this->adapter->model} DROP INDEX {$fulltextName};"
-      );
-    }
-  }
-
 }

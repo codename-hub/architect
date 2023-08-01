@@ -1,17 +1,25 @@
 {
-    "name": "codename/architect",
-    "description": "This is going to be the management application for database and application management.",
-    "type": "package",
-    "keywords": ["architect", "manager", "codename", "core"],
-    "authors": [
-        {
-            "name": "Kevin Dargel",
-            "role": "Software Developer"
-        }
-    ],
-    "autoload": {
-      "psr-4": {
-          "codename\\architect\\": "backend/class/"
-      }
+  "name": "codename/architect",
+  "description": "This is going to be the management application for database and application management.",
+  "type": "package",
+  "keywords": [
+    "architect",
+    "manager",
+    "codename",
+    "core"
+  ],
+  "authors": [
+    {
+      "name": "Kevin Dargel",
+      "role": "Software Developer"
     }
+  ],
+  "require": {
+    "php": "^8.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "codename\\architect\\": "backend/class/"
+    }
+  }
 }

@@ -1,68 +1,69 @@
 <?php
+
 namespace codename\architect\deploy\task\model\filter;
 
+use codename\architect\deploy\task\model\filter;
 use codename\architect\deploy\taskresult;
-
 use codename\core\exception;
+use ReflectionException;
 
 /**
  * update a dataset using filters
  */
-class update extends \codename\architect\deploy\task\model\filter {
+class update extends filter
+{
+    /**
+     * updatable data
+     * @var null|array
+     */
+    protected ?array $data = null;
 
-  /**
-   * updatable data
-   * @var array
-   */
-  protected $data = null;
+    /**
+     * {@inheritDoc}
+     * @return taskresult
+     * @throws ReflectionException
+     * @throws exception
+     */
+    public function run(): taskresult
+    {
+        $model = $this->getPreparedModel();
 
-  /**
-   * @inheritDoc
-   */
-  protected function handleConfig()
-  {
-    parent::handleConfig();
-    $this->data = $this->config->get('data');
-  }
+        $normalizedData = $model->normalizeData($this->data);
 
-  /**
-   * @inheritDoc
-   */
-  public function run(): \codename\architect\deploy\taskresult
-  {
-    $model = $this->getPreparedModel();
+        //
+        // TODO: we might make sure there's no PKEY or unique key value inside the dataset
+        //
 
-    $normalizedData = $model->normalizeData($this->data);
+        if ($this->config->get('validate') ?? true) {
+            $model->validate($normalizedData);
+        }
 
-    //
-    // TODO: we might make sure there's no PKEY or unique key value inside the dataset
-    //
+        if (count($errors = $model->getErrors()) > 0) {
+            $text = "Model '{$model->getIdentifier()}' data validation error: " . print_r($errors, true);
+        } else {
+            $filterQueryComponents = $model->getFilterQueryComponents();
 
-    if($this->config->get('validate') ?? true) {
-      $model->validate($normalizedData);
+            // perform the update
+            $model->update($normalizedData);
+
+            $text = "Model '{$model->getIdentifier()}' mass dataset update using: " . print_r($normalizedData, true);
+
+            if ($this->config->get('verbose')) {
+                $text .= "and filters: " . print_r($filterQueryComponents, true);
+            }
+        }
+
+        return new taskresult\text([
+          'text' => $text,
+        ]);
     }
 
-    $text = '';
-
-    if(count($errors = $model->getErrors()) > 0) {
-      $text = "Model '{$model->getIdentifier()}' data validation error: " . print_r($errors, true);
-    } else {
-
-      $filterQueryComponents = $model->getFilterQueryComponents();
-
-      // perform the update
-      $model->update($normalizedData);
-
-      $text = "Model '{$model->getIdentifier()}' mass dataset update using: " . print_r($normalizedData, true);
-
-      if($this->config->get('verbose')) {
-        $text .= "and filters: " . print_r($filterQueryComponents, true);
-      }
+    /**
+     * {@inheritDoc}
+     */
+    protected function handleConfig(): void
+    {
+        parent::handleConfig();
+        $this->data = $this->config->get('data');
     }
-
-    return new taskresult\text([
-      'text' => $text
-    ]);
-
-  }
 }

@@ -1,22 +1,30 @@
 <?php
+
 namespace codename\architect\deploy\task\model;
 
+use codename\architect\deploy\task\model;
+use codename\architect\deploy\taskresult;
+use codename\architect\deploy\taskresult\text;
+use codename\core\exception;
+use ReflectionException;
 
 /**
  * base class for doing model-specific tasks
  */
-class query extends \codename\architect\deploy\task\model {
+class query extends model
+{
+    /**
+     * {@inheritDoc}
+     * @return taskresult
+     * @throws ReflectionException
+     * @throws exception
+     */
+    public function run(): taskresult
+    {
+        $res = $this->getModelInstance()->setLimit(1)->search()->getResult();
 
-  /**
-   * @inheritDoc
-   */
-  public function run(): \codename\architect\deploy\taskresult
-  {
-    $res = $this->getModelInstance()->setLimit(1)->search()->getResult();
-
-    return new \codename\architect\deploy\taskresult\text([
-      'text' => print_r($res, true)
-    ]);
-  }
-
+        return new text([
+          'text' => print_r($res, true),
+        ]);
+    }
 }

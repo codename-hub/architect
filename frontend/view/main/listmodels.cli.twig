@@ -1,15 +1,15 @@
-Models in {{ request.getData('filter')['vendor']}}\{{ request.getData('filter')['app']}}
+Models in {{ request.getData('filter')['vendor'] }}\{{ request.getData('filter')['app'] }}
 
 *** Build Tasks
 
-  Vendor:   {{ request.getData('filter>vendor') }}
-  App:      {{ request.getData('filter>app') }}
+Vendor:   {{ request.getData('filter>vendor') }}
+App:      {{ request.getData('filter>app') }}
 
 *** Actions:
 
 {% for tasktype_name, tasktype_value in response.getData('dbdoc_stats>available_task_types') %}
-{{tasktype_name}}:  {% for key,value in request.getData('filter') %}--filter[{{key}}]={{value}}{% endfor %}{#
-  #} --exec=1 --exec_tasks[]={{tasktype_value}}
+  {{ tasktype_name }}:  {% for key,value in request.getData('filter') %}--filter[{{ key }}]={{ value }}{% endfor %}{#
+#} --exec=1 --exec_tasks[]={{ tasktype_value }}
 {% endfor %}
 
 ----------
@@ -25,7 +25,7 @@ Models in {{ request.getData('filter')['vendor']}}\{{ request.getData('filter')[
 
 *** Models
 
-{{ response.getData('table')|raw}}
+{{ response.getData('table')|raw }}
 
 ----------
 
