@@ -1,18 +1,18 @@
 <?php
+
 namespace codename\architect\dbdoc\plugin;
 
 /**
  * plugin for providing and comparing table data
  * @package architect
  */
-abstract class table extends \codename\architect\dbdoc\plugin\modelPrefix {
-
-  /**
-   * @inheritDoc
-   */
-  public function getDefinition()
-  {
-    return $this->adapter->model;
-  }
-
+abstract class table extends modelPrefix
+{
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefinition(): ?string
+    {
+        return $this->adapter->model;
+    }
 }

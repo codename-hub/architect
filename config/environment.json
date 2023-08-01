@@ -1,168 +1,168 @@
 {
-  "production" : {
-    "templateengine" : {
-      "default" : {
-        "__comment" : "twig config used for default output",
-        "driver" : "twig"
+  "production": {
+    "templateengine": {
+      "default": {
+        "__comment": "twig config used for default output",
+        "driver": "twig"
       },
-      "cli" : {
-        "__comment" : "twig config used for cli-only output. forced in app class.",
-        "driver" : "twig",
-        "template_file_extension" : ".cli.twig"
+      "cli": {
+        "__comment": "twig config used for cli-only output. forced in app class.",
+        "driver": "twig",
+        "template_file_extension": ".cli.twig"
       }
     },
     "filesystem": {
-			"local": {
-				"driver": "local"
-			}
-		},
-    "cache" : {
-      "default" : {
-        "driver" : "devnull"
+      "local": {
+        "driver": "local"
       }
     },
-    "session" : {
-			"default" : {
-				"driver" : "dummy"
-			}
-		},
-    "log" : {
+    "cache": {
+      "default": {
+        "driver": "devnull"
+      }
+    },
+    "session": {
+      "default": {
+        "driver": "dummy"
+      }
+    },
+    "log": {
       "errormessage": {
-				"driver": "file",
-				"data": {
-					"name": "architect_error",
-					"minlevel" : -3
-				}
-			},
+        "driver": "file",
+        "data": {
+          "name": "architect_error",
+          "minlevel": -3
+        }
+      },
       "debug": {
-				"driver": "dummy",
-				"data": {
-					"name": "architect_debug",
-					"minlevel" : -2
-				}
-			},
+        "driver": "dummy",
+        "data": {
+          "name": "architect_debug",
+          "minlevel": -2
+        }
+      },
       "access": {
-				"driver": "dummy",
-				"data": {
-					"name": "architect_access",
-					"minlevel" : -5
-				}
-			}
+        "driver": "dummy",
+        "data": {
+          "name": "architect_access",
+          "minlevel": -5
+        }
+      }
     }
   },
   "dev": {
-    "templateengine" : {
-      "default" : {
-        "__comment" : "twig config used for default output",
-        "driver" : "twig"
+    "templateengine": {
+      "default": {
+        "__comment": "twig config used for default output",
+        "driver": "twig"
       },
-      "cli" : {
-        "__comment" : "twig config used for cli-only output. forced in app class.",
-        "driver" : "twig",
-        "template_file_extension" : ".cli.twig"
+      "cli": {
+        "__comment": "twig config used for cli-only output. forced in app class.",
+        "driver": "twig",
+        "template_file_extension": ".cli.twig"
       }
     },
     "filesystem": {
-			"local": {
-				"driver": "local"
-			}
-		},
-    "cache" : {
-      "default" : {
-        "driver" : "devnull"
+      "local": {
+        "driver": "local"
       }
     },
-    "session" : {
-			"default" : {
-				"driver" : "dummy"
-			}
-		},
-    "log" : {
+    "cache": {
+      "default": {
+        "driver": "devnull"
+      }
+    },
+    "session": {
+      "default": {
+        "driver": "dummy"
+      }
+    },
+    "log": {
       "errormessage": {
-				"driver": "file",
-				"data": {
-					"name": "architect_error",
-					"minlevel" : -3
-				}
-			},
-      "debug": {
-				"driver": "file",
-				"data": {
-					"name": "architect_debug",
-					"minlevel" : -2
-				}
-			},
-      "access": {
-				"driver": "file",
-				"data": {
-					"name": "architect_access",
-					"minlevel" : -5
-				}
-			},
-      "query" : {
         "driver": "file",
-				"data": {
-					"name": "query",
-					"minlevel" : 0
-				}
+        "data": {
+          "name": "architect_error",
+          "minlevel": -3
+        }
+      },
+      "debug": {
+        "driver": "file",
+        "data": {
+          "name": "architect_debug",
+          "minlevel": -2
+        }
+      },
+      "access": {
+        "driver": "file",
+        "data": {
+          "name": "architect_access",
+          "minlevel": -5
+        }
+      },
+      "query": {
+        "driver": "file",
+        "data": {
+          "name": "query",
+          "minlevel": 0
+        }
       }
     }
   },
   "dev_test": {
-    "templateengine" : {
-      "default" : {
-        "__comment" : "twig config used for default output",
-        "driver" : "twig"
+    "templateengine": {
+      "default": {
+        "__comment": "twig config used for default output",
+        "driver": "twig"
       },
-      "cli" : {
-        "__comment" : "twig config used for cli-only output. forced in app class.",
-        "driver" : "twig",
-        "template_file_extension" : ".cli.twig"
+      "cli": {
+        "__comment": "twig config used for cli-only output. forced in app class.",
+        "driver": "twig",
+        "template_file_extension": ".cli.twig"
       }
     },
     "filesystem": {
-			"local": {
-				"driver": "local"
-			}
-		},
-    "cache" : {
-      "default" : {
-        "driver" : "devnull"
+      "local": {
+        "driver": "local"
       }
     },
-    "session" : {
-			"default" : {
-				"driver" : "dummy"
-			}
-		},
-    "log" : {
+    "cache": {
+      "default": {
+        "driver": "devnull"
+      }
+    },
+    "session": {
+      "default": {
+        "driver": "dummy"
+      }
+    },
+    "log": {
       "errormessage": {
-				"driver": "file",
-				"data": {
-					"name": "architect_error",
-					"minlevel" : -3
-				}
-			},
-      "debug": {
-				"driver": "file",
-				"data": {
-					"name": "architect_debug",
-					"minlevel" : -2
-				}
-			},
-      "access": {
-				"driver": "file",
-				"data": {
-					"name": "architect_access",
-					"minlevel" : -5
-				}
-			},
-      "query" : {
         "driver": "file",
-				"data": {
-					"name": "query",
-					"minlevel" : 0
-				}
+        "data": {
+          "name": "architect_error",
+          "minlevel": -3
+        }
+      },
+      "debug": {
+        "driver": "file",
+        "data": {
+          "name": "architect_debug",
+          "minlevel": -2
+        }
+      },
+      "access": {
+        "driver": "file",
+        "data": {
+          "name": "architect_access",
+          "minlevel": -5
+        }
+      },
+      "query": {
+        "driver": "file",
+        "data": {
+          "name": "query",
+          "minlevel": 0
+        }
       }
     }
   }
